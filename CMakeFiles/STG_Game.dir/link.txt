@@ -1,0 +1,1 @@
+/usr/bin/c++   -Wall -Wextra -pedantic -std=c++11 -g  -rdynamic CMakeFiles/STG_Game.dir/src/SDL2_header.cpp.o CMakeFiles/STG_Game.dir/src/main.cpp.o CMakeFiles/STG_Game.dir/src/PaperCraft.cpp.o  -o bin/STG_Game -Wl,-Bstatic -lSDL2main -Wl,-Bdynamic -lSDL2 -lpthread -lSDL2_image -lSDL2_ttf 

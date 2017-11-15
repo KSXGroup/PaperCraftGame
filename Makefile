@@ -169,6 +169,87 @@ STG_Game/fast:
 	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/build
 .PHONY : STG_Game/fast
 
+src/PaperCraft.o: src/PaperCraft.cpp.o
+
+.PHONY : src/PaperCraft.o
+
+# target to build an object file
+src/PaperCraft.cpp.o:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/PaperCraft.cpp.o
+.PHONY : src/PaperCraft.cpp.o
+
+src/PaperCraft.i: src/PaperCraft.cpp.i
+
+.PHONY : src/PaperCraft.i
+
+# target to preprocess a source file
+src/PaperCraft.cpp.i:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/PaperCraft.cpp.i
+.PHONY : src/PaperCraft.cpp.i
+
+src/PaperCraft.s: src/PaperCraft.cpp.s
+
+.PHONY : src/PaperCraft.s
+
+# target to generate assembly for a file
+src/PaperCraft.cpp.s:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/PaperCraft.cpp.s
+.PHONY : src/PaperCraft.cpp.s
+
+src/SDL2_header.o: src/SDL2_header.cpp.o
+
+.PHONY : src/SDL2_header.o
+
+# target to build an object file
+src/SDL2_header.cpp.o:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/SDL2_header.cpp.o
+.PHONY : src/SDL2_header.cpp.o
+
+src/SDL2_header.i: src/SDL2_header.cpp.i
+
+.PHONY : src/SDL2_header.i
+
+# target to preprocess a source file
+src/SDL2_header.cpp.i:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/SDL2_header.cpp.i
+.PHONY : src/SDL2_header.cpp.i
+
+src/SDL2_header.s: src/SDL2_header.cpp.s
+
+.PHONY : src/SDL2_header.s
+
+# target to generate assembly for a file
+src/SDL2_header.cpp.s:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/SDL2_header.cpp.s
+.PHONY : src/SDL2_header.cpp.s
+
+src/main.o: src/main.cpp.o
+
+.PHONY : src/main.o
+
+# target to build an object file
+src/main.cpp.o:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
+
+src/main.i: src/main.cpp.i
+
+.PHONY : src/main.i
+
+# target to preprocess a source file
+src/main.cpp.i:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
+
+src/main.s: src/main.cpp.s
+
+.PHONY : src/main.s
+
+# target to generate assembly for a file
+src/main.cpp.s:
+	$(MAKE) -f CMakeFiles/STG_Game.dir/build.make CMakeFiles/STG_Game.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -182,6 +263,15 @@ help:
 	@echo "... install/local"
 	@echo "... rebuild_cache"
 	@echo "... install"
+	@echo "... src/PaperCraft.o"
+	@echo "... src/PaperCraft.i"
+	@echo "... src/PaperCraft.s"
+	@echo "... src/SDL2_header.o"
+	@echo "... src/SDL2_header.i"
+	@echo "... src/SDL2_header.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
 .PHONY : help
 
 
