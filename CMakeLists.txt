@@ -39,9 +39,10 @@ include_directories(${SDL2_TTF_INCLUDE_DIR})
 
 set(SOURCE_FILES
     include/res_path.h      include/cleanup.h
+    include/PaperCraft.h
     include/SDL2_header.h   src/SDL2_header.cpp
     include/pointd.h
-    src/main.cpp )
+    src/main.cpp 	src/PaperCraft.cpp)
 
 if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
         file(COPY "${PROJECT_SOURCE_DIR}/res" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
