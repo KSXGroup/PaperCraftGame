@@ -1,0 +1,7 @@
+/home/kstarxin/code/PaperCraft/CMakeFiles/install/strip.dir
+/home/kstarxin/code/PaperCraft/CMakeFiles/edit_cache.dir
+/home/kstarxin/code/PaperCraft/CMakeFiles/STG_Game.dir
+/home/kstarxin/code/PaperCraft/CMakeFiles/list_install_components.dir
+/home/kstarxin/code/PaperCraft/CMakeFiles/install/local.dir
+/home/kstarxin/code/PaperCraft/CMakeFiles/rebuild_cache.dir
+/home/kstarxin/code/PaperCraft/CMakeFiles/install.dir
