@@ -1,4 +1,5 @@
 #include "PaperCraft.h"
+using namespace Game;
 SignalRouter::SignalRouter(){
 	cin >> max;
 	PC = new PaperCraft(this);
@@ -16,6 +17,7 @@ SignalRouter::~SignalRouter(){
 }
 
 void SignalRouter::init(){
+	srand(time(NULL));
 	PC  -> init(SCR_W / 2 - PC -> PlayerPicW / 2,SCR_H - PC -> PlayerPicH / 2, 5);
 	EM  -> init(max / 2, max);
 	BLT -> init(50 * max);
@@ -191,14 +193,213 @@ void PaperObj::move(){
 	BPB -> move(velocity, speed);
 }
 
+PaperCraft::~PaperCraft(){
+	cleanup(PlayerPic);
+	cleanup(Protector);
+}
+
 void PaperCraft::init(const PointD &p, const double _speed){
 	pos = p;
 	speed = _speed;
 	last_shoot = 50;
+	PlayerPic = loadImage(PLAYERPIC);
+	Protector = loadImage(ROUNDPIC);
+	getImageSize(PlayerPic, PlayerPicW, PlayerPicH);
+	getImageSize(Protector, ProtectorW, ProtectorH);
+	BPB -> init(ObjId::PLAYER, pos, PlayerPicW, PlayerPicH);
 }
 
 void PaperCraft::move(){
+	if(SR -> keyboard[KEY_UP]){
+		if(pos.y <= PlayerPicH / 2){
+			return;
+		}
+		velocity = velocity + PointD(0,-1)*speed;
+		ifMove = true;
+	}
+	if(SR -> keyboard[KEY_DOWN]){
+		if(pos.y >= SCR_H - PlayerPicH / 2){
+			return;
+		}
+		velocity = velocity + PointD(0,+1)*speed;
+		ifMove = true;
+	}
+	if(SR -> keyboard[KEY_LEFT]){
+		if(pos.x <= PlayerPicW / 2){
+			return;
+		}
+		velocity = velocity + PointD(-1,0)*speed;
+		ifMove = true;
+	}
+	if(SR -> keyboard[KEY_RIGHT]){
+		if(pos.x >= SCR_W - PlayerPicW / 2){
+			return;
+		}
+		velocity = velocity + PointD(+1,0)*speed;
+		ifMove = true;
+	}
+
+	//Limit player's speed
+	double len = velocity.length();
+	if( len > speed ){
+		velocity = velocity / len *speed;
+	}
+	if(!ifMove){
+		velocity = PointD();
+	}
+	//Calculate new position
+	pos = pos + velocity;
+	BPB -> move(velocity, speed);
 }
+
+void PaperCraft::shoot(){
+	if(SR -> keyboard[KEY_SPACE] && last_shoot >= 50){
+		SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y - 20), PointD(0, -1), speed + BulletState::NORMALSPEED, ObjId::PLAYER);
+	}
+}
+
+void PaperCraft::drawPlayer(){
+	if(state != PlayerState::DIE){
+		drawImage(pos.x - PlayerPicW / 2, pos.y - PlayerPicH / 2);
+		if(state == PlayerState::PROTECTED){
+			drawImage(pos.x - ProtectorW / 2, pos.y - ProtectorH / 2);
+		}
+	}
+}
+
+void PaperCraft::drawAttachments(){
+	//TODO
+}
+
+void PaperCraft::checkAndDeal(){
+	//TODO
+}
+
+void EnemyCraft::init(const PointD &p, const double _speed, const int type){
+	pos = p;
+	speed = _speed;
+	if(type = EnemyState::NORMAL){
+		life = 1;
+		last_shoot = 200;
+		status = type;
+		BPB -> init(ObjId::ENEMY, p, speed);
+	}
+	else if(type == EnemyState::BIG){
+		//TODO
+	}
+	else if(type == EnemyState::BOSS){
+		//TODO
+	}
+}
+void EnemyCraft::shoot(const int strategy, const SignalRouter *SR){
+	if(strategy == BulletState::HALFROUNDSHOOT){
+		if(last_shoot < 100){
+			return;
+		}
+		else{
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(-sqrt(3), 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(-1 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(-1 , 2 + sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(0 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(1 , 2 + sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(1 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(sqrt(3) , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+		}
+	}
+	if(strategy == BulletState::STRAGIHTSHOOT){
+		if(last_shoot < 50){
+			return;
+		}
+		else{
+			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(0, 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+		}
+	}
+}
+
+void EnemCraft::drawEnemy(Image *img){
+	int w = 0, h = 0;
+	getImageSize(img, w, h);
+	drawImage(img, pos.x - w / 2, pos.y - h / 2, 1, 1, 180);
+}
+
+void EnemyCraft::reset(){
+	life = 0;
+	last_shoot = 200;
+	pos = PointD();
+	velocity  = PointD();
+	BPB -> reset();
+	state = EnemyState::INIT;
+	status = -1;
+}
+
+void Enemy::~Enmey(){
+	delete [] enemies;
+}
+
+void Enemy::init(const int start_amount, const int max_amount){
+	current_enemy = start_amount;
+	max_enemy = max_amount;
+	EnemyPicNormal = loadImage(ENEMYPICNORMAL);
+	enemies = new EnemyCraft(max_amount + 10);
+	for(int i = 0; i < start_amount; ++i){
+		enemies[i].init(PointD(rand() % (SCR_W - 40) + 20, 20), rand() % EnemyState::NORMALSPEED + 2, EnemyState::NORMAL);
+		enemies[i].state = EnemyState::LIVE;
+	}
+	for(int i = start_amount;i < max_amount; ++i){
+		enemies[i].init(PointD(), 0, EnemyState::NORMAL);
+	}
+}
+
+void Enemy::allocateNewEnemy(){
+	if(last_allocate < 200 || current_enemy  == max_enemy){
+		return;
+	}
+	else{
+		
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

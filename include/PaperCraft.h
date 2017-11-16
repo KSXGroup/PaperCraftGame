@@ -9,7 +9,7 @@
 
 const std::string ROUNDPIC = "round.png";
 const std::string PLAYERPIC = "paper.png";
-const std::string ENEMYPIC = "enemy1.png";
+const std::string ENEMYPICNORMAL = "enemy1.png";
 const std::string BULLETPIC = "bullet2.png";
 const std::string PROPLIFE = "life.png";
 const std::string PROPENER = "energy.png";
@@ -62,9 +62,9 @@ struct EnemyState{
 	static const int LIVE = 1;
 	static const int DIE = 0;
 	//static const int PROP = 2;
-	static const int NORMAL = 3;
-	static const int BIG = 4;
-	static const int BOSS = 5;
+	static const int NORMAL = 10;
+	static const int BIG = 11;
+	static const int BOSS = 12;
 	static const double BUMPRANGE = 10.3;
 };
 
@@ -76,12 +76,13 @@ struct PropState{
 	static const int ADD_BOMB = 2;
 	static const double BUMPRANGE = 10;
 };
-
 struct BulletState{
 	static const int BULLETSPEED = 2;
 	static const int SHOOTED = 1;
 	static const int UNSHOOTED = 0;
 	static const double NORMALBUMPRNAGE = 5;
+	static const int HALFROUNDSHOOT = 10;
+	static const int STRAIGHTSHOOT = 11;
 };
 
 struct CirRange{
@@ -186,29 +187,31 @@ class PlayerCraft : public PaperObj{
 		void move() override;
 		void shoot();
 		void drawPlayer();
-		void drawAttachments();
+		void drawAttachments(); //TODO
 		void checkAndDeal();
-		inline void addScore(const int sc);
-		inline void addLife(const int lf);
-		inline void addEnergy(const int en);
-		inline void addBomb(const int bo);
+		inline void addScore(const int sc){
+			score += sc;
+		}
+		inline void addLife(const int lf){
+			life += lf;
+		}
+		inline void addEnergy(const int en){
+			energy += en;
+		}
+		inline void addBomb(const int bo){
+			bomb += bo;
+		}
 		//void kbdRecv(const int &key);
 		int state = PlayerState::LIVE;
 	private:
 		Image *PlayerPic = nullptr;
 		Image *Protector = nullptr;
-		Image *ScoreTitle = nullptr;
-		Image *NumberPic = nullptr;
 		SignalRouter *SR = nullptr;
 		bool ifMove = true;
 		int PlayerPicH = 0;
 		int PlayerPicW = 0;
 		int ProtectorH = 0;
 		int ProtectorW = 0;
-		int NumberW = 0;
-		int NumberH = 0;
-		int TitleH = 0;
-		int TitleW = 0;
 		int last_shoot = 10;
 		int ProtectedTime = 240;
 		int PicAlpha = 255;
@@ -224,11 +227,9 @@ class EnemyCraft : public PaperObj{
 		friend class SignalRouter;
 		friend class Enemy;
 		friend class PaperProp;
-		EnemyCraft() : PaperObj(){
-			BPB = new BumpBox;
-		}
-		virtual ~EnemyCraft();//remember to delete and clean!
-		void init(const double init_posx, const double init_posy, const double _speed , const int type);
+		EnemyCraft() : PaperObj(){}
+		virtual ~EnemyCraft() = default;//remember to delete and clean!
+		void init(const PointD &p, const double _speed , const int type);
 		void shoot(const int strategy, const SignalRouter *SR);
 		void drawEnemy(Image *img);
 		void reset();
@@ -258,7 +259,9 @@ class Enemy{
 		int current_enemy = 0;
 		int max_enemy = 0;
 		int last_allocate = 0;
-		Image *EnemyPic = nullptr;
+		Image *EnemyPicNormal = nullptr;
+		Image *EnemyPicBig = nullptr;
+		Image *EnmeyPicBoss = nullptr;
 		EnemyCraft *enemies = nullptr; 
 		SignalRouter *SR = nullptr;
 };
@@ -292,7 +295,7 @@ class Bullet{
 		void checkAndDeal();
 		void moveAll();
 		void drawAll();
-		int allocateNew(const PointD &p, const PointD &v, const double sp, const int ow);
+		int allocateNewBullet(const PointD &p, const PointD &v, const double sp, const int ow);
 		void reset();
 	private:
 		SignalRouter *SR = nullptr;
