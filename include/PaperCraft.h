@@ -80,7 +80,7 @@ struct BulletState{
 	static const int BULLETSPEED = 2;
 	static const int SHOOTED = 1;
 	static const int UNSHOOTED = 0;
-	static const int NORMALSPEED = 3;
+	static const int NORMALSPEED = 2;
 	//static const double NORMALBUMPRNAGE = 5;
 	static const int HALFROUNDSHOOT = 10;
 	static const int STRAIGHTSHOOT = 11;

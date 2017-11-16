@@ -19,12 +19,8 @@ SDL2_header.h
 /home/kstarxin/code/PaperCraft/src/SDL2_header.h
 
 /home/kstarxin/code/PaperCraft/src/main.cpp
-SDL2_header.h
-/home/kstarxin/code/PaperCraft/src/SDL2_header.h
-cstdio
--
-map
--
+PaperCraft.h
+/home/kstarxin/code/PaperCraft/src/PaperCraft.h
 
 include/PaperCraft.h
 SDL2_header.h

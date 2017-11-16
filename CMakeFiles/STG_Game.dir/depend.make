@@ -15,6 +15,7 @@ CMakeFiles/STG_Game.dir/src/SDL2_header.cpp.o: include/pointd.h
 CMakeFiles/STG_Game.dir/src/SDL2_header.cpp.o: include/res_path.h
 
 CMakeFiles/STG_Game.dir/src/main.cpp.o: src/main.cpp
+CMakeFiles/STG_Game.dir/src/main.cpp.o: include/PaperCraft.h
 CMakeFiles/STG_Game.dir/src/main.cpp.o: include/SDL2_header.h
 CMakeFiles/STG_Game.dir/src/main.cpp.o: include/cleanup.h
 CMakeFiles/STG_Game.dir/src/main.cpp.o: include/pointd.h

@@ -16,6 +16,7 @@ CMakeFiles/STG_Game.dir/src/SDL2_header.cpp.o
  include/res_path.h
 CMakeFiles/STG_Game.dir/src/main.cpp.o
  /home/kstarxin/code/PaperCraft/src/main.cpp
+ include/PaperCraft.h
  include/SDL2_header.h
  include/cleanup.h
  include/pointd.h

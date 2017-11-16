@@ -29,10 +29,14 @@ void SignalRouter::drawAll(){
 	EM  -> drawAll();
 	BLT -> drawAll();
 	PRP -> drawAll();
+	setPenColor((Color){200, 200, 200, 255});
+	drawRect(Rect{674,0,350,768},1);
 }
 
 void SignalRouter::dealAll(){
 	PC  -> checkAndDeal();
+	EM  -> allocateNewEnemy();
+	EM  -> shootAll();
 	EM  -> checkAndDeal();
 	BLT -> checkAndDeal();
 	PRP -> checkAndDeal();
@@ -181,12 +185,8 @@ inline void PaperObj::speedSet(const double s){
 
 void PaperObj::move(){
 	double vlen = velocity.length();
-	if(vlen > speed){
-		pos = pos + velocity / vlen * speed;
-	}
-	else{
-		pos = pos + velocity;
-	}
+	velocity = velocity / vlen * speed;
+	pos = pos + velocity;
 	BPB -> move(velocity, speed);
 }
 
@@ -207,6 +207,7 @@ void PlayerCraft::init(const PointD &p, const double _speed){
 }
 
 void PlayerCraft::move(){
+	ifMove = false;
 	if(SR -> keyboard[KEY_UP]){
 		if(pos.y <= PlayerPicH / 2){
 			return;
@@ -273,6 +274,7 @@ void PlayerCraft::checkAndDeal(){
 }
 
 void EnemyCraft::init(const PointD &p, const double _speed, const int type){
+	velocity = PointD(0, 1);
 	pos = p;
 	speed = _speed;
 	if(type == EnemyState::NORMAL){
@@ -291,6 +293,7 @@ void EnemyCraft::init(const PointD &p, const double _speed, const int type){
 void EnemyCraft::shoot(const int strategy, const SignalRouter *SR){
 	if(strategy == BulletState::HALFROUNDSHOOT){
 		if(last_shoot < 100){
+			last_shoot++;
 			return;
 		}
 		else{
@@ -301,14 +304,17 @@ void EnemyCraft::shoot(const int strategy, const SignalRouter *SR){
 			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(1 , 2 + sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
 			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(1 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
 			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(sqrt(3) , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			last_shoot = 0;
 		}
 	}
 	if(strategy == BulletState::STRAIGHTSHOOT){
 		if(last_shoot < 50){
+			last_shoot++;
 			return;
 		}
 		else{
 			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(0, 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			last_shoot = 0;
 		}
 	}
 }
@@ -349,6 +355,7 @@ void Enemy::init(const int start_amount, const int max_amount){
 
 void Enemy::allocateNewEnemy(){
 	int to_allocate = 0, count = 0;
+	last_allocate++;
 	if(last_allocate < 200 || current_enemy  == max_enemy){
 		return;
 	}
@@ -365,7 +372,9 @@ void Enemy::allocateNewEnemy(){
 				break;
 			}
 		}
+		last_allocate = 0;
 	}
+		std::cout << current_enemy << std::endl;
 }
 
 void Enemy::moveAll(){
@@ -374,9 +383,9 @@ void Enemy::moveAll(){
 		if(enemies[i].state == EnemyState::LIVE){
 			enemies[i].move();
 			++count;
-			if(count == current_enemy){
+			/*if(count == current_enemy){
 				break;
-			}
+			}*/
 		}
 	}
 }
@@ -396,7 +405,7 @@ void Enemy::checkAndDeal(){
 				enemies[i].reset();
 				current_enemy--;
 			}
-			if(enemies[i].pos.y >= SCR_H){
+			if(enemies[i].pos.y >= SCR_H + 20){
 				enemies[i].reset();
 				current_enemy--;
 			}
@@ -651,7 +660,7 @@ void Prop::allocateNewProp(const int type, const PointD &p, const PointD &v, con
 }
 
 void Prop::randomAllocate(){
-	int f = rand() / 10000;
+	int f = rand() / 100000;
 	if(f > 100){
 		return;
 	}

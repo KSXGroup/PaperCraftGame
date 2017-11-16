@@ -318,7 +318,7 @@ int main(int argc, char* args[]) {
 
 	//Setup our window and renderer
 	window = SDL_CreateWindow(TitleName.c_str(), SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
+			SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL|SDL_WINDOW_BORDERLESS);
 	if (window == nullptr){
 		logSDLError(std::cout, "CreateWindow");
 		TTF_Quit();
