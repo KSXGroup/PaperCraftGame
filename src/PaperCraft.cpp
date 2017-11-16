@@ -1,11 +1,11 @@
 #include "PaperCraft.h"
 using namespace Game;
 SignalRouter::SignalRouter(){
-	cin >> max;
-	PC = new PaperCraft(this);
+	std::cin >> max;
+	PC = new PlayerCraft(this);
 	EM = new Enemy(this);
 	BLT = new Bullet(this);
-	PRP = new Propt(this);
+	PRP = new Prop(this);
 }
 
 SignalRouter::~SignalRouter(){
@@ -18,7 +18,7 @@ SignalRouter::~SignalRouter(){
 
 void SignalRouter::init(){
 	srand(time(NULL));
-	PC  -> init(SCR_W / 2 - PC -> PlayerPicW / 2,SCR_H - PC -> PlayerPicH / 2, 5);
+	PC  -> init( PointD(SCR_W / 2 - PC -> PlayerPicW / 2,SCR_H - PC -> PlayerPicH / 2) , 5);
 	EM  -> init(max / 2, max);
 	BLT -> init(50 * max);
 	PRP -> init(max);
@@ -50,7 +50,7 @@ void SignalRouter::dealBump(){
 	//PLAYER WITH ENEMY
 		for(int i = 0; i < EM -> max_enemy; ++i){
 			if(EM -> enemies[i].state == EnemyState::LIVE){
-				EM -> enemies[i].BPB -> BumpDect(PC -> BPB);
+				EM -> enemies[i].BPB -> BumpDetect(PC -> BPB);
 				if(PC -> BPB -> ifBumped() == BumpState::BUMPED){
 					(PC -> life)--;
 					PC -> BPB -> state = BumpState::NOTBUMPED;
@@ -63,7 +63,7 @@ void SignalRouter::dealBump(){
 	//PLAYER WITH BULLET
 		for(int i = 0; i < BLT -> max_bullet; ++i){
 			if(BLT -> bullets[i].owner == ObjId::ENEMY && BLT -> bullets[i].state == BulletState::SHOOTED){
-				BLT -> bullets[i].BPB -> BumpDetect(PC -> BumpBox);
+				BLT -> bullets[i].BPB -> BumpDetect(PC -> BPB);
 				if(PC -> BPB -> ifBumped() == BumpState::BUMPED){
 					(PC -> life)--;
 					PC -> BPB -> state = BumpState::NOTBUMPED;
@@ -78,7 +78,7 @@ void SignalRouter::dealBump(){
 				for(int j = 0; j < BLT -> max_bullet; ++j){
 					if(BLT -> bullets[j].owner != ObjId::ENEMY && BLT -> bullets[j].state == BulletState::SHOOTED){
 						EM -> enemies[i].BPB -> BumpDetect(BLT -> bullets[j].BPB);
-						if(EM -> enemies[i].BPB -> ifBumped() == BumpState::Bumped){
+						if(EM -> enemies[i].BPB -> ifBumped() == BumpState::BUMPED){
 							(EM -> enemies[i].life)--;
 							EM -> enemies[i].BPB -> state = BumpState::NOTBUMPED;
 						}
@@ -99,22 +99,22 @@ void SignalRouter::reset(){
 	//TODO
 }
 
-void BumpBox::init(const int type, const PointD &p, const int PicW = 10, const int PicH = 10){
+void BumpBox::init(const int type, const PointD &p, const int &PicW, const int &PicH){
 	switch(type){
 		case ObjId::PLAYER:
 			size = 1;
 			BumpUnit[0].unitPos = p;
-			BumpUnit[0].r = PlayerState::BUMPRANGE;
+			BumpUnit[0].r = 5;
 			break;
 		case ObjId::ENEMY:
 			size = 1;
 			BumpUnit[0].unitPos = p;
-			BumpUnit[0].r = EnemyState::BUMPRANGE;
+			BumpUnit[0].r = 10.3;
 			break;
 		case ObjId::NORMALBULLET:
 			size = 1;
 			BumpUnit[0].unitPos = p;
-			BumpUnit[0].r = NORMALBUMPRANGE;
+			BumpUnit[0].r = 5;
 			break;
 	}
 }
@@ -122,8 +122,8 @@ void BumpBox::init(const int type, const PointD &p, const int PicW = 10, const i
 void BumpBox::move(const PointD &v, const double sp){
 	PointD tmp = v;
 	double vlen = tmp.length();
-	if(vlen > speed){
-		tmp = tmp / vlen * speed;
+	if(vlen > sp){
+		tmp = tmp / vlen * sp;
 	}
 	for(int i = 0;i < size; ++i){
 		BumpUnit[i].unitPos = BumpUnit[i].unitPos + tmp;
@@ -154,9 +154,6 @@ void BumpBox::BumpDetect(BumpBox *target){
 	}
 }
 
-inline void BumpBox::ifBumped(){
-	return state;
-}
 
 PaperObj::PaperObj(){
 	BPB = new BumpBox;
@@ -193,12 +190,12 @@ void PaperObj::move(){
 	BPB -> move(velocity, speed);
 }
 
-PaperCraft::~PaperCraft(){
+PlayerCraft::~PlayerCraft(){
 	cleanup(PlayerPic);
 	cleanup(Protector);
 }
 
-void PaperCraft::init(const PointD &p, const double _speed){
+void PlayerCraft::init(const PointD &p, const double _speed){
 	pos = p;
 	speed = _speed;
 	last_shoot = 50;
@@ -209,7 +206,7 @@ void PaperCraft::init(const PointD &p, const double _speed){
 	BPB -> init(ObjId::PLAYER, pos, PlayerPicW, PlayerPicH);
 }
 
-void PaperCraft::move(){
+void PlayerCraft::move(){
 	if(SR -> keyboard[KEY_UP]){
 		if(pos.y <= PlayerPicH / 2){
 			return;
@@ -252,33 +249,33 @@ void PaperCraft::move(){
 	BPB -> move(velocity, speed);
 }
 
-void PaperCraft::shoot(){
+void PlayerCraft::shoot(){
 	if(SR -> keyboard[KEY_SPACE] && last_shoot >= 50){
 		SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y - 20), PointD(0, -1), speed + BulletState::NORMALSPEED, ObjId::PLAYER);
 	}
 }
 
-void PaperCraft::drawPlayer(){
+void PlayerCraft::drawPlayer(){
 	if(state != PlayerState::DIE){
-		drawImage(pos.x - PlayerPicW / 2, pos.y - PlayerPicH / 2);
+		drawImage(PlayerPic, pos.x - PlayerPicW / 2, pos.y - PlayerPicH / 2);
 		if(state == PlayerState::PROTECTED){
-			drawImage(pos.x - ProtectorW / 2, pos.y - ProtectorH / 2);
+			drawImage(Protector,pos.x - ProtectorW / 2, pos.y - ProtectorH / 2);
 		}
 	}
 }
 
-void PaperCraft::drawAttachments(){
+void PlayerCraft::drawAttachments(){
 	//TODO
 }
 
-void PaperCraft::checkAndDeal(){
+void PlayerCraft::checkAndDeal(){
 	//TODO
 }
 
 void EnemyCraft::init(const PointD &p, const double _speed, const int type){
 	pos = p;
 	speed = _speed;
-	if(type = EnemyState::NORMAL){
+	if(type == EnemyState::NORMAL){
 		life = 1;
 		last_shoot = 200;
 		status = type;
@@ -306,7 +303,7 @@ void EnemyCraft::shoot(const int strategy, const SignalRouter *SR){
 			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(sqrt(3) , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
 		}
 	}
-	if(strategy == BulletState::STRAGIHTSHOOT){
+	if(strategy == BulletState::STRAIGHTSHOOT){
 		if(last_shoot < 50){
 			return;
 		}
@@ -316,7 +313,7 @@ void EnemyCraft::shoot(const int strategy, const SignalRouter *SR){
 	}
 }
 
-void EnemCraft::drawEnemy(Image *img){
+void EnemyCraft::drawEnemy(Image *img){
 	int w = 0, h = 0;
 	getImageSize(img, w, h);
 	drawImage(img, pos.x - w / 2, pos.y - h / 2, 1, 1, 180);
@@ -332,7 +329,7 @@ void EnemyCraft::reset(){
 	status = -1;
 }
 
-void Enemy::~Enmey(){
+Enemy::~Enemy(){
 	delete [] enemies;
 }
 
@@ -340,7 +337,7 @@ void Enemy::init(const int start_amount, const int max_amount){
 	current_enemy = start_amount;
 	max_enemy = max_amount;
 	EnemyPicNormal = loadImage(ENEMYPICNORMAL);
-	enemies = new EnemyCraft(max_amount + 10);
+	enemies = new EnemyCraft[max_amount];
 	for(int i = 0; i < start_amount; ++i){
 		enemies[i].init(PointD(rand() % (SCR_W - 40) + 20, 20), rand() % EnemyState::NORMALSPEED + 2, EnemyState::NORMAL);
 		enemies[i].state = EnemyState::LIVE;
@@ -351,44 +348,323 @@ void Enemy::init(const int start_amount, const int max_amount){
 }
 
 void Enemy::allocateNewEnemy(){
+	int to_allocate = 0, count = 0;
 	if(last_allocate < 200 || current_enemy  == max_enemy){
 		return;
 	}
 	else{
-		
+		to_allocate = rand() % (max_enemy - current_enemy) + 2;
+		current_enemy += to_allocate;
+		for(int i = 0; i < max_enemy; ++i){
+			if(enemies[i].state == EnemyState::INIT){
+				enemies[i].init(PointD(rand() % (SCR_W - 40) + 20, 20), rand() % EnemyState::NORMALSPEED + 2, EnemyState::NORMAL);
+				enemies[i].state = EnemyState::LIVE;
+				count++;
+			}
+			if(count == to_allocate){
+				break;
+			}
+		}
+	}
+}
+
+void Enemy::moveAll(){
+	int count = 0;
+	for(int i = 0;i < max_enemy; ++i){
+		if(enemies[i].state == EnemyState::LIVE){
+			enemies[i].move();
+			++count;
+			if(count == current_enemy){
+				break;
+			}
+		}
+	}
+}
+
+void Enemy::velocityChangeAll(const PointD &v){
+	for(int i = 0;i < max_enemy; ++i){
+		if(enemies[i].state == EnemyState::LIVE){
+			enemies[i].velocityChange(v);
+		}
+	}
+}
+
+void Enemy::checkAndDeal(){
+	for(int i = 0; i < max_enemy; ++i){
+		if(enemies[i].state == EnemyState::LIVE){
+			if(enemies[i].life <= 0){
+				enemies[i].reset();
+				current_enemy--;
+			}
+			if(enemies[i].pos.y >= SCR_H){
+				enemies[i].reset();
+				current_enemy--;
+			}
+		}
+	}
+}
+
+void Enemy::drawAll(){
+	int count = 0;
+	for(int i = 0;i < max_enemy; ++i){
+		if(enemies[i].state == EnemyState::LIVE){
+			if(enemies[i].status == EnemyState::NORMAL){
+				enemies[i].drawEnemy(EnemyPicNormal);
+			}
+			else if(enemies[i].status == EnemyState::BIG){
+				//TODO
+			}
+			else if(enemies[i].status == EnemyState::BOSS){
+				//TODO
+			}
+			count++;
+			if(count == current_enemy){
+				break;
+			}
+		}
+	}
+}
+
+void Enemy::shootAll(){
+	int count = 0;
+	for(int i = 0; i < max_enemy;++i){
+		if(enemies[i].state == EnemyState::LIVE){
+			count++;
+			if(enemies[i].status == EnemyState::NORMAL){
+				if(enemies[i].speed <= 5){
+					enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR);
+				}
+				else{
+					enemies[i].shoot(BulletState::STRAIGHTSHOOT, SR);
+				}
+			}
+			else if(enemies[i].status == EnemyState::BIG){
+				//TODO
+			}
+			else if(enemies[i].status == EnemyState::BOSS){
+				//TODO
+			}
+			if(count == current_enemy){
+				break;
+			}
+		}
+	}
+}
+
+void PaperBullet::init(const PointD &p, const PointD &v, const double sp){
+	pos = p;
+	velocity = v;
+	speed = sp;
+	owner = 0;
+	BPB -> init(ObjId::NORMALBULLET, p);
+}
+
+void PaperBullet::reset(){
+	pos = PointD();
+	velocity = PointD();
+	state = BulletState::UNSHOOTED;
+	owner = 0;
+	BPB -> reset();
+}
+
+void PaperBullet::drawBullet(Image *img){
+	int w = 0, h = 0;
+	getImageSize(img, w, h);
+	drawImage(img, pos.x - w / 2, pos.y - h / 2);
+}
+
+Bullet::~Bullet(){
+	delete [] bullets;
+	for(int i = 0; i < 5; ++i){
+		cleanup(BulletPic[i]);
+	}
+}
+
+void Bullet::init(const int mb, std::string bulletPicPath){
+	//varios bullets TODO here
+	bullets = new PaperBullet[mb];
+	BulletPic[0] = loadImage(bulletPicPath);
+	max_bullet = mb;
+	getImageSize(BulletPic[0], BulletW, BulletH);
+}
+
+void Bullet::checkAndDeal(){
+	for(int i = 0; i < max_bullet; ++i){
+		if(bullets[i].state == BulletState::SHOOTED){
+			if(bullets[i].pos.x >= SCR_W || bullets[i].pos.x <= 0 || bullets[i].pos.y >= SCR_H || bullets[i].pos.y <= 0){
+				bullets[i].reset();
+				current_bullet--;
+			}
+			if(bullets[i].BPB -> ifBumped() == BumpState::BUMPED){
+				bullets[i].reset();
+				current_bullet--;
+			}
+		}
+	}
+}
+
+void Bullet::moveAll(){
+	int count = 0;
+	for(int i = 0; i < max_bullet; ++i){
+		if(bullets[i].state == BulletState::SHOOTED){
+			bullets[i].move();
+			count++;
+			if(count == current_bullet){
+				break;
+			}
+		}
+	}
+}
+
+void Bullet::drawAll(){
+	int count = 0;
+	for(int i = 0; i < max_bullet; ++i){
+		if(bullets[i].state == BulletState::SHOOTED){
+			bullets[i].drawBullet(BulletPic[0]);
+			count++;
+			if(count == current_bullet){
+				break;
+			}
+		}
+	}
+}
+
+int Bullet::allocateNewBullet(const PointD &p, const PointD &v, const double sp, const int ow){
+	for(int i = 0; i < max_bullet; ++i){
+		if(bullets[i].state == BulletState::UNSHOOTED){
+			bullets[i].init(p, v, sp);
+			bullets[i].owner = ow;
+			bullets[i].state = BulletState::SHOOTED;
+			current_bullet++;
+			return 0;
+		}
+	}
+	return 1;
+}
+
+void Bullet::reset(){
+	for(int i = 0; i < max_bullet; ++i){
+		bullets[i].reset();
 	}
 }
 
 
+void PaperProp::init(const int type, const PointD &p, const PointD &v, const double sp){
+	prop_type = type;
+	pos = p;
+	velocity = v;
+	speed = sp;
+	BPB -> init(ObjId::PROP, p);
+}
 
+void PaperProp::reset(){
+	pos = PointD();
+	velocity = PointD();
+	speed = -1;
+	prop_type = -1;
+	state = PropState::OFF;
+	BPB -> reset();
+}
 
+void PaperProp::drawProp(Image *img){
+	int w = 0, h = 0;
+	getImageSize(img, w, h);
+	drawImage(img, pos.x - w / 2, pos.y - h / 2);
+}
 
+Prop::~Prop(){
+	delete [] props;
+}
 
+void Prop::init(const int max_em){
+	props = new PaperProp[2 * max_em];
+	max_prop = max_em * 2;
+	lifeProp = loadImage(PROPLIFE);
+	enerProp = loadImage(PROPENER);
+	bombProp = loadImage(PROPBOMB);
+	getImageSize(lifeProp, PropW, PropH);
+}
 
+void Prop::moveAll(){
+	int count = 0;
+	for(int i = 0; i < max_prop; ++i){
+		if(props[i].state == PropState::ON){
+			count++;
+			props[i].move();
+			if(count == current_prop){
+				return;
+			}
+		}
+	}
+}
 
+void Prop::drawAll(){
+	int count = 0;
+	for(int i = 0; i < max_prop; ++i){
+		if(props[i].state == PropState::ON){
+			count++;
+			if(props[i].prop_type == PropState::ADD_LIFE){
+				props[i].drawProp(lifeProp);
+			}
+			else if(props[i].prop_type == PropState::ADD_ENER){
+				props[i].drawProp(enerProp);
+			}
+			else if(props[i].prop_type == PropState::ADD_BOMB){
+				props[i].drawProp(bombProp);
+			}
+			if(count == current_prop){
+				return;
+			}
+		}
+	}
+}
 
+void Prop::checkAndDeal(){
+	for(int i = 0; i < max_prop ;++i){
+		if(props[i].state == PropState::ON){
+			if(props[i].BPB -> ifBumped() == BumpState::BUMPED){
+				if(props[i].prop_type == PropState::ADD_LIFE){
+					SR -> PC -> addLife(1);
+				}
+				else if(props[i].prop_type == PropState::ADD_ENER){
+					SR -> PC -> addEnergy(5);
+				}
+				else if(props[i].prop_type == PropState::ADD_BOMB){
+					SR -> PC -> addBomb(1);
+				}
+				props[i].reset();
+			}
+			else if(props[i].pos.x > SCR_W || props[i].pos.x < 0 || props[i].pos.y > SCR_H || props[i].pos.y < 0){
+				props[i].reset();
+			}
+		}
+	}
+}
 
+void Prop::allocateNewProp(const int type, const PointD &p, const PointD &v, const double sp){
+	for(int i = 0; i < max_prop; ++i){
+		if(props[i].state == PropState::OFF){
+			props[i].init(type, p, v, sp);
+			props[i].state = PropState::ON;
+		}
+	}
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void Prop::randomAllocate(){
+	int f = rand() / 10000;
+	if(f > 100){
+		return;
+	}
+	else if(f > 50){
+		allocateNewProp(PropState::ADD_ENER, PointD(rand() % (SCR_W - 40) + 20, 0), PointD(0, 1), rand() % 2 + 1);
+	}
+	else if(f > 20){
+		allocateNewProp(PropState::ADD_LIFE, PointD(rand() % (SCR_W - 40) + 20, 0), PointD(0, 1), rand() % 2 + 1);
+	}
+	else{
+		allocateNewProp(PropState::ADD_BOMB, PointD(rand() % (SCR_W - 40) + 20, 0), PointD(0, 1), rand() % 2 + 1);
+	}
+}
 
 
 

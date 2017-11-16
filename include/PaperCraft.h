@@ -52,7 +52,7 @@ struct PlayerState{
 	static const int LIVE = 1;
 	static const int DIE = 0;
 	static const int PROTECTED = 2;
-	static const double BUMPRANEG = 5;
+	//static const double BUMPRANEG = 5;
 };
 
 struct EnemyState{
@@ -65,7 +65,7 @@ struct EnemyState{
 	static const int NORMAL = 10;
 	static const int BIG = 11;
 	static const int BOSS = 12;
-	static const double BUMPRANGE = 10.3;
+	//static const double BUMPRANGE = 10.3;
 };
 
 struct PropState{
@@ -74,13 +74,14 @@ struct PropState{
 	static const int ADD_LIFE = 0;
 	static const int ADD_ENER = 1;
 	static const int ADD_BOMB = 2;
-	static const double BUMPRANGE = 10;
+	//static const double BUMPRANGE = 10;
 };
 struct BulletState{
 	static const int BULLETSPEED = 2;
 	static const int SHOOTED = 1;
 	static const int UNSHOOTED = 0;
-	static const double NORMALBUMPRNAGE = 5;
+	static const int NORMALSPEED = 3;
+	//static const double NORMALBUMPRNAGE = 5;
 	static const int HALFROUNDSHOOT = 10;
 	static const int STRAIGHTSHOOT = 11;
 };
@@ -124,7 +125,7 @@ class UserInteract{
 		UserInteract(SignalRouter *sig):SR(sig){}
 		virtual ~UserInteract();
 		void drawHint(); //TODO
-		void drawWelcome; //TODO
+		void drawWelcome(); //TODO
 		void drawEnd(); //TODO
 	private:
 		SignalRouter *SR;
@@ -152,7 +153,9 @@ class BumpBox{
 		void move(const PointD &v, const double sp);
 		//void posSet(const PointD &p);
 		void BumpDetect(BumpBox *target);
-		inline int ifBumped();
+		inline int ifBumped(){
+			return state;
+		}
 	private:
 		int state = BumpState::NOTBUMPED;
 		int size = 0;
@@ -260,8 +263,8 @@ class Enemy{
 		int max_enemy = 0;
 		int last_allocate = 0;
 		Image *EnemyPicNormal = nullptr;
-		Image *EnemyPicBig = nullptr;
-		Image *EnmeyPicBoss = nullptr;
+		Image *EnemyPicBig = nullptr;//TODO
+		Image *EnmeyPicBoss = nullptr;//TODO
 		EnemyCraft *enemies = nullptr; 
 		SignalRouter *SR = nullptr;
 };
@@ -271,14 +274,10 @@ class PaperBullet : public PaperObj{
 		friend class Bullet;
 		friend class SignalRouter;
 		PaperBullet() : PaperObj(){}
-		virtual ~PaperBullet();//remember to delete!
-		void velocityChange(const PointD &v);
-		void velocitySet(const PointD &v);
-		void init(const PointD &p,const PointD &v, const double &sp);
+		virtual ~PaperBullet() = default;
+		void init(const PointD &p,const PointD &v, const double sp);
 		void reset();
-		void speedSet(const double s);
-		void drawBullet(Image *img, const int w, const int h);
-		BumpBox *BPB= nullptr;
+		void drawBullet(Image *img);
 	private:
 		int state = BulletState::UNSHOOTED;
 		int owner = 0;
@@ -291,7 +290,7 @@ class Bullet{
 			SR = sig;
 		};
 		virtual ~Bullet();//remember to delete and clean!
-		void init(const int max_bullet,std::string bulletPicPath = BULLETPIC);//dont forget to load
+		void init(const int mb,std::string bulletPicPath = BULLETPIC);//dont forget to load
 		void checkAndDeal();
 		void moveAll();
 		void drawAll();
@@ -304,25 +303,24 @@ class Bullet{
 		int BulletH = 0;
 		int max_bullet = 0;
 		int current_bullet = 0;
-		Image *BulletPic[5];
+		Image *BulletPic[5];//TODO
 };
 
 class PaperProp : public PaperObj{
 	public:
 		friend class Prop;
 		friend class SignalRouter;
-		PaperProp(const EnemyCraft &wreck) : PaperObj(wreck.pos.x, wreck.pos.y, wreck.speed){
+		PaperProp(const EnemyCraft &wreck) : PaperObj(){
 			velocity = wreck.velocity;
-			BPB = new BumpBox;
+			pos.x = wreck.pos.x;
+			pos.y = wreck.pos.y;
+			speed = wreck.speed;
 		}
-		PaperProp():PaperObj(){
-			BPB = new BumpBox;
-		}
-		virtual ~PaperProp();
+		PaperProp():PaperObj(){}
+		virtual ~PaperProp() = default;
 		void init(const int type, const PointD &p,const PointD &v, const double sp);
 		void reset();
-		void drawProp(Image *img, const int w, const int h);
-		BumpBox *BPB = nullptr;
+		void drawProp(Image *img);
 	private:
 		int state = PropState::OFF;
 		int prop_type = -1;
@@ -332,8 +330,6 @@ class Prop{
 	public:
 		friend class SignalRouter;
 		Prop(SignalRouter *sig){
-			max_prop = max;
-			props = new PaperProp[max];
 			SR = sig;
 		}
 		virtual ~Prop();
@@ -342,7 +338,7 @@ class Prop{
 		void drawAll();
 		void checkAndDeal();
 		void randomAllocate();
-		void allocateNewProp(const int type, const double posx, const double posy, const double sp, const PointD &v);
+		void allocateNewProp(const int type, const PointD &p, const PointD &v,const double sp);
 	private:
 		SignalRouter *SR = nullptr;
 		PaperProp *props = nullptr;
