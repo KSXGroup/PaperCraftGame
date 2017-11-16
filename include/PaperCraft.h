@@ -160,11 +160,11 @@ class PaperObj{
 class PlayerCraft : public PaperObj{
 	public:
 		friend class SignalRouter;
-		PlayerCraft(const double init_posx,const double init_posy, SignalRouter *sig, const double _speed = PlayerState::SPEED) : PaperObj(init_posx, init_posy, _speed){
+		PlayerCraft(SignalRouter *sig) : PaperObj(-1, -1, -1){
 			SR = sig;
 		}
 		virtual ~PlayerCraft();//remember to clean up and delete BPB!
-		void init();
+		void init(const double init_posx,const double init_posy, const double _speed);
 		inline void velocityChange(const PointD &v);
 		inline void velocitySet(const PointD &v);
 		inline void posChange(const PointD &p);
@@ -320,7 +320,7 @@ class PaperProp : public PaperObj{
 class Prop{
 	public:
 		friend class SignalRouter;
-		Prop(const int max,SignalRouter *sig){
+		Prop(SignalRouter *sig){
 			max_prop = max;
 			props = new PaperProp[max];
 			SR = sig;
