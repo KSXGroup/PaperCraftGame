@@ -148,12 +148,12 @@ class BumpBox{
 			}
 		}
 		void reset();
-		void move(PointD v, const double sp);
+		void move(const PointD &v, const double sp);
 		//void posSet(const PointD &p);
 		void BumpDetect(BumpBox *target);
 		inline int ifBumped();
 	private:
-		int status = BumpState::NOTBUMPED;
+		int state = BumpState::NOTBUMPED;
 		int size = 0;
 		//Image *dot = Game::loadImage("dot.png");
 		CirRange *BumpUnit;
@@ -161,13 +161,13 @@ class BumpBox{
 //TODO
 class PaperObj{
 	public:
-		PaperObj() = default;
+		PaperObj();
 		virtual ~PaperObj();
 		inline void velocityChange(const PointD &v);
 		inline void velocitySet(const PointD &v);
 		inline void posChange(const PointD &p);
-		inline void posSet(const PointD &p);
-		void speedSet(const double s);
+		inline void speedSet(const double s);
+		virtual void move();
 		BumpBox *BPB = nullptr;
 		double speed;
 	protected:
@@ -178,17 +178,20 @@ class PaperObj{
 class PlayerCraft : public PaperObj{
 	public:
 		friend class SignalRouter;
-		PlayerCraft(SignalRouter *sig) : PaperObj(-1, -1, -1){
+		PlayerCraft(SignalRouter *sig) : PaperObj(){
 			SR = sig;
 		}
 		virtual ~PlayerCraft();//remember to clean up and delete BPB!
-		void init(const double init_posx,const double init_posy, const double _speed);
+		void init(const PointD &p, const double _speed);
+		void move() override;
 		void shoot();
-		void move();
-		inline void addScore(const int sc);
 		void drawPlayer();
 		void drawAttachments();
 		void checkAndDeal();
+		inline void addScore(const int sc);
+		inline void addLife(const int lf);
+		inline void addEnergy(const int en);
+		inline void addBomb(const int bo);
 		//void kbdRecv(const int &key);
 		int state = PlayerState::LIVE;
 	private:
@@ -221,12 +224,11 @@ class EnemyCraft : public PaperObj{
 		friend class SignalRouter;
 		friend class Enemy;
 		friend class PaperProp;
-		EnemyCraft() : PaperObj(-1, -1, -1){
+		EnemyCraft() : PaperObj(){
 			BPB = new BumpBox;
 		}
 		virtual ~EnemyCraft();//remember to delete and clean!
 		void init(const double init_posx, const double init_posy, const double _speed , const int type);
-		void move();
 		void shoot(const int strategy, const SignalRouter *SR);
 		void drawEnemy(Image *img);
 		void reset();
@@ -265,12 +267,11 @@ class PaperBullet : public PaperObj{
 	public:
 		friend class Bullet;
 		friend class SignalRouter;
-		PaperBullet() : PaperObj(-1,-1,-1){}
+		PaperBullet() : PaperObj(){}
 		virtual ~PaperBullet();//remember to delete!
 		void velocityChange(const PointD &v);
 		void velocitySet(const PointD &v);
 		void init(const PointD &p,const PointD &v, const double &sp);
-		void move();
 		void reset();
 		void speedSet(const double s);
 		void drawBullet(Image *img, const int w, const int h);
@@ -311,12 +312,11 @@ class PaperProp : public PaperObj{
 			velocity = wreck.velocity;
 			BPB = new BumpBox;
 		}
-		PaperProp():PaperObj(-1, -1, -1){
+		PaperProp():PaperObj(){
 			BPB = new BumpBox;
 		}
 		virtual ~PaperProp();
 		void init(const int type, const PointD &p,const PointD &v, const double sp);
-		void move();
 		void reset();
 		void drawProp(Image *img, const int w, const int h);
 		BumpBox *BPB = nullptr;
