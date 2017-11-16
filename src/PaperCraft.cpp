@@ -59,5 +59,77 @@ void SignalRouter::dealBump(){
 		}
 	}
 	//ENEMY WITH BULLET
+	for(int i = 0; i < EM -> max_enemy; ++i){
+		if(EM -> enemies[i].state == EnemyState::LIVE){
+				for(int j = 0; j < BLT -> max_bullet; ++j){
+					EM -> enemies[i].BPB -> BumpDetect(BLT -> bullets[i].BPB);
+				}
+		}
+	}
 	//PLAYER WITH PROP
+	for(int i = 0; i < PRP -> max_prop; ++i){
+		if(PRP -> props[i].state == PropState::ON){
+			PC -> BPB -> BumpDetect(PRP -> props[i].BPB);
+		}
+	}
 }
+
+void SignalRouter::reset(){
+	//TODO
+}
+
+void BumpBox::init(const int type, const PointD &p, const int PicW = 10, const int PicH = 10){
+	switch(type){
+		case ObjId::PLAYER:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = PlayerState::BUMPRANGE;
+			break;
+		case ObjId::ENEMY:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = EnemyState::BUMPRANGE;
+			break;
+		case ObjId::NORMALBULLET:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = NORMALBUMPRANGE;
+			break;
+	}
+}
+
+void BumpBox::reset(){
+	for(int i = 0;i < size; ++i){
+		BumpUnit[i].unitPos = PointD();
+		
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -9,7 +9,7 @@
 
 const std::string ROUNDPIC = "round.png";
 const std::string PLAYERPIC = "paper.png";
-const std::string ENEMYPIC = "enemy.png";
+const std::string ENEMYPIC = "enemy1.png";
 const std::string BULLETPIC = "bullet2.png";
 const std::string PROPLIFE = "life.png";
 const std::string PROPENER = "energy.png";
@@ -28,8 +28,10 @@ class Prop;
 struct ObjId{
 	static const int PLAYER = 0;
 	static const int ENEMY = 1;
-	static const int BULLET = 2;
-	static const int PROP = 3;
+	static const int NORMALBULLET = 2;
+	static const int BIGBULLET = 3;
+	static const int LAYSER = 4;
+	static const int PROP = 5;
 };
 
 struct GameState{
@@ -50,6 +52,7 @@ struct PlayerState{
 	static const int LIVE = 1;
 	static const int DIE = 0;
 	static const int PROTECTED = 2;
+	static const double BUMPRANEG = 5;
 };
 
 struct EnemyState{
@@ -62,6 +65,7 @@ struct EnemyState{
 	static const int NORMAL = 3;
 	static const int BIG = 4;
 	static const int BOSS = 5;
+	static const double BUMPRANGE = 10.3;
 };
 
 struct PropState{
@@ -70,12 +74,14 @@ struct PropState{
 	static const int ADD_LIFE = 0;
 	static const int ADD_ENER = 1;
 	static const int ADD_BOMB = 2;
+	static const double BUMPRANGE = 10;
 };
 
 struct BulletState{
 	static const int BULLETSPEED = 2;
 	static const int SHOOTED = 1;
 	static const int UNSHOOTED = 0;
+	static const double NORMALBUMPRNAGE = 5;
 };
 
 struct CirRange{
@@ -114,8 +120,11 @@ class SignalRouter{
 
 class UserInteract{
 	public:
-		UserInteract(SignalRouter *sig);
+		UserInteract(SignalRouter *sig):SR(sig){}
 		virtual ~UserInteract();
+		void drawHint(); //TODO
+		void drawWelcome; //TODO
+		void drawEnd(); //TODO
 	private:
 		SignalRouter *SR;
 };
@@ -152,12 +161,18 @@ class BumpBox{
 //TODO
 class PaperObj{
 	public:
-		PaperObj(const double init_posx, const double init_posy, const double _speed);
-		virtual ~PaperObj(){}
+		PaperObj() = default;
+		virtual ~PaperObj();
+		inline void velocityChange(const PointD &v);
+		inline void velocitySet(const PointD &v);
+		inline void posChange(const PointD &p);
+		inline void posSet(const PointD &p);
+		void speedSet(const double s);
+		BumpBox *BPB = nullptr;
 		double speed;
 	protected:
-		PointD velocity;
-		PointD pos;
+		PointD velocity = PointD();
+		PointD pos = PointD();
 };
 
 class PlayerCraft : public PaperObj{
@@ -168,11 +183,6 @@ class PlayerCraft : public PaperObj{
 		}
 		virtual ~PlayerCraft();//remember to clean up and delete BPB!
 		void init(const double init_posx,const double init_posy, const double _speed);
-		inline void velocityChange(const PointD &v);
-		inline void velocitySet(const PointD &v);
-		inline void posChange(const PointD &p);
-		inline void posSet(const PointD &p);
-		void speedSet(const double s);
 		void shoot();
 		void move();
 		inline void addScore(const int sc);
@@ -181,7 +191,6 @@ class PlayerCraft : public PaperObj{
 		void checkAndDeal();
 		//void kbdRecv(const int &key);
 		int state = PlayerState::LIVE;
-		BumpBox *BPB = nullptr;
 	private:
 		Image *PlayerPic = nullptr;
 		Image *Protector = nullptr;
@@ -217,14 +226,10 @@ class EnemyCraft : public PaperObj{
 		}
 		virtual ~EnemyCraft();//remember to delete and clean!
 		void init(const double init_posx, const double init_posy, const double _speed , const int type);
-		inline void velocityChange(const PointD &v);
-		inline void velocitySet(const PointD &v);
-		inline void speedSet(const double s);
 		void move();
 		void shoot(const int strategy, const SignalRouter *SR);
 		void drawEnemy(Image *img);
 		void reset();
-		BumpBox *BPB = nullptr;
 		int state = EnemyState::INIT;
 		int status = EnemyState::NORMAL;
 	private:
