@@ -112,10 +112,13 @@ class SignalRouter{
 		Prop *PRP = nullptr;
 };
 
-/*class UserInteract{
+class UserInteract{
 	public:
+		UserInteract(SignalRouter *sig);
+		virtual ~UserInteract();
 	private:
-};*/
+		SignalRouter *SR;
+};
 
 class BumpBox{
 	public:
@@ -237,11 +240,11 @@ class Enemy{
 		friend class SignalRouter;
 		Enemy(SignalRouter *sig):SR(sig){}
 		void init(const int start_amount = 5,const int max_amount = 10);//LOAD PIC AND RANDOMIZE START POSITION
-		void allocateNew();
+		void allocateNewEnemy();
 		void moveAll();
 		void velocityChangeAll(const PointD &v);
 		void checkAndDeal();
-		void drawAllEnemy();
+		void drawAll();
 		void shootAll();
 		virtual ~Enemy();//remember to delete and clean!
 	private:
@@ -279,7 +282,7 @@ class Bullet{
 			SR = sig;
 		};
 		virtual ~Bullet();//remember to delete and clean!
-		void init(const int max_bullet,std::string bulletPicPath = BULLETPIC);
+		void init(const int max_bullet,std::string bulletPicPath = BULLETPIC);//dont forget to load
 		void checkAndDeal();
 		void moveAll();
 		void drawAll();
@@ -292,7 +295,7 @@ class Bullet{
 		int BulletH = 0;
 		int max_bullet = 0;
 		int current_bullet = 0;
-		Image *BulletPic = nullptr;
+		Image *BulletPic[5];
 };
 
 class PaperProp : public PaperObj{
@@ -326,7 +329,7 @@ class Prop{
 			SR = sig;
 		}
 		virtual ~Prop();
-		void init();
+		void init(const int max_em);
 		void moveAll();
 		void drawAll();
 		void checkAndDeal();
