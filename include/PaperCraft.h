@@ -10,6 +10,7 @@
 const std::string ROUNDPIC = "round.png";
 const std::string PLAYERPIC = "paper.png";
 const std::string ENEMYPICNORMAL = "enemy1.png";
+const std::string ENEMYPICBOSS = "boss.png";
 const std::string BULLETPIC = "bullet2.png";
 const std::string PROPLIFE = "life.png";
 const std::string PROPENER = "energy.png";
@@ -19,6 +20,8 @@ const std::string BOMBSAM = "bombsam1.png";
 const std::string CRAFTSAM = "craftsam.png";
 const std::string NUMBERS = "numbers.png";
 const std::string MULTIPLY = "multiply.png";
+const std::string LOSE = "lose.png";
+const std::string WIN = "win.png";
 const int SCR_W = Game::SCREEN_WIDTH - 350;
 const int SCR_H = Game::SCREEN_HEIGHT;
 
@@ -32,6 +35,7 @@ class UserInteract;
 struct ObjId{
 	static const int PLAYER = 0;
 	static const int ENEMY = 1;
+	static const int BOSS = 10086;
 	static const int NORMALBULLET = 2;
 	static const int BIGBULLET = 3;
 	static const int LAYSER = 4;
@@ -43,6 +47,9 @@ struct GameState{
 	static const int RUN = 1;
 	static const int END = 2;
 	static const int PAUSE = 3;
+	static const int BOSS = 4;
+	static const int WIN = 5;
+	static const int LOSE = 6;
 	static const int BOARD = 50;
 };
 
@@ -86,8 +93,10 @@ struct BulletState{
 	static const int UNSHOOTED = 0;
 	static const int NORMALSPEED = 2;
 	//static const double NORMALBUMPRNAGE = 5;
+	static const int REVERSEHALFROUNDSHOOT = 9;
 	static const int HALFROUNDSHOOT = 10;
 	static const int STRAIGHTSHOOT = 11;
+	static const int TRACESHOOT = 12;
 };
 
 struct CirRange{
@@ -113,12 +122,15 @@ class SignalRouter{
 		void moveAll();
 		void dealBump();//TODO
 		void reset();
-		//void bombReset();
+		void bombReset();
 		//PointD windVelocity = PointD();
 		std::map<int, bool> keyboard;
+		double mX = 0;
+		double mY = 0;
+		bool MC = false;
+		int state = GameState::RUN;
 	private:
 		int max = 10;
-		int state = GameState::RUN;
 		PlayerCraft *PC = nullptr;
 		Enemy *EM = nullptr;
 		Bullet *BLT = nullptr;
@@ -131,9 +143,9 @@ class UserInteract{
 		UserInteract(SignalRouter *sig):SR(sig){}
 		virtual ~UserInteract();
 		void init();
-		void drawHint(); //TODO
+		void drawHint(); 
 		void drawWelcome(); //TODO
-		void drawEnd(); //TODO
+		void drawEnd(int res); 
 	private:
 		SignalRouter *SR;
 		Image *ScoreTitle = nullptr;
@@ -146,6 +158,10 @@ class UserInteract{
 		int NumberPicH = 0, NumberPicW = 0;
 		Image *Multiply = nullptr;
 		int MultiplyH = 0, MultiplyW = 0;
+		Image *Lose = nullptr;
+		int LoseH = 0, LoseW = 0;
+		Image *Win = nullptr;
+		int WinH = 0, WinW = 0;
 };
 
 class BumpBox{
@@ -210,6 +226,7 @@ class PlayerCraft : public PaperObj{
 		void drawPlayer();
 		//void drawAttachments(); //TODO
 		void checkAndDeal();
+		inline PointD getPos();
 		inline void addScore(const int sc){
 			score += sc;
 		}
@@ -246,7 +263,7 @@ class PlayerCraft : public PaperObj{
 		int ProtectedTime = 240;
 		int ProtectedCount = 0;
 		int PicAlpha = 255;
-		int life = 5;
+		int life = 2;
 		int energy = 100;
 		int bomb = 2;
 		int score = 0;
@@ -261,7 +278,7 @@ class EnemyCraft : public PaperObj{
 		EnemyCraft() : PaperObj(){}
 		virtual ~EnemyCraft() = default;//remember to delete and clean!
 		void init(const PointD &p, const double _speed , const int type);
-		void shoot(const int strategy, const SignalRouter *SR);
+		void shoot(const int strategy, const SignalRouter *SR,const PointD &centre, const PointD &drct);
 		void drawEnemy(Image *img);
 		void reset();
 		int state = EnemyState::INIT;
@@ -280,11 +297,13 @@ class Enemy{
 		Enemy(SignalRouter *sig):SR(sig){}
 		void init(const int start_amount = 5,const int max_amount = 10);//LOAD PIC AND RANDOMIZE START POSITION
 		void allocateNewEnemy();
+		void allocateBoss();
 		void moveAll();
 		void velocityChangeAll(const PointD &v);
 		void checkAndDeal();
 		void drawAll();
 		void shootAll();
+		void reset();
 		virtual ~Enemy();//remember to delete and clean!
 	private:
 		int current_enemy = 0;
@@ -292,7 +311,7 @@ class Enemy{
 		int last_allocate = 0;
 		Image *EnemyPicNormal = nullptr;
 		Image *EnemyPicBig = nullptr;//TODO
-		Image *EnmeyPicBoss = nullptr;//TODO
+		Image *EnemyPicBoss = nullptr;//TODO
 		EnemyCraft *enemies = nullptr; 
 		SignalRouter *SR = nullptr;
 };

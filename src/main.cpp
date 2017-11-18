@@ -21,18 +21,17 @@ int work( bool &quit )
 }
 
 
-void mousePress()
-{
+void mousePress(){
+	ctrl -> MC = 1;
 }
 
-void mouseMove()
-{
-
+void mouseMove(){
+	ctrl -> mX = mouseX;
+	ctrl -> mX = mouseY;
 }
 
-void mouseRelease()
-{
-
+void mouseRelease(){
+	ctrl -> MC = 0;	
 }
 
 void keyDown()

@@ -28,32 +28,87 @@ void SignalRouter::init(){
 }
 
 void SignalRouter::drawAll(){
-	PC  -> drawPlayer();
-	EM  -> drawAll();
-	BLT -> drawAll();
-	PRP -> drawAll();
-	setPenColor((Color){200, 200, 200, 255});
-	drawRect(Rect{674,0,350,768},1);
-	UI -> drawHint();
+	/*if(state == GameState::INIT){
+		UI -> drawWelcome();
+	}*/
+	if(state == GameState::RUN){
+		PC  -> drawPlayer();
+		EM  -> drawAll();
+		BLT -> drawAll();
+		PRP -> drawAll();
+		setPenColor((Color){200, 200, 200, 255});
+		drawRect(Rect{674,0,350,768},1);
+		UI -> drawHint();
+	}
+	if(state == GameState::BOSS){
+		PC  -> drawPlayer();
+		EM  -> drawAll();
+		BLT -> drawAll();
+		setPenColor((Color){200, 200, 200, 255});
+		drawRect(Rect{674,0,350,768},1);
+		UI -> drawHint();
+	}
+	if(state == GameState::WIN || state == GameState::LOSE ){
+		PC  -> drawPlayer();
+		BLT -> drawAll();
+		setPenColor((Color){200, 200, 200, 255});
+		drawRect(Rect{674,0,350,768},1);
+		UI -> drawHint();
+		UI -> drawEnd(state);
+	}
 }
 
 void SignalRouter::dealAll(){
-	EM  -> allocateNewEnemy();
-	PRP -> randomAllocate();
-	EM  -> shootAll();
-	PC  -> shoot();
-	dealBump();
-	PC  -> checkAndDeal();
-	EM  -> checkAndDeal();
-	BLT -> checkAndDeal();
-	PRP -> checkAndDeal();
+	if(PC -> score >= 50 && state == GameState::RUN){
+		state = GameState::BOSS;
+		EM -> allocateBoss();
+	}
+	if(state == GameState::INIT){
+		//UI -> checkAndDeal();
+	}
+	if(state == GameState::RUN){
+		EM  -> allocateNewEnemy();
+		PRP -> randomAllocate();
+		EM  -> shootAll();
+		PC  -> shoot();
+		dealBump();
+		PC  -> checkAndDeal();
+		EM  -> checkAndDeal();
+		BLT -> checkAndDeal();
+		PRP -> checkAndDeal();
+	}
+	if(state == GameState::BOSS){
+		EM  -> shootAll();
+		PC  -> shoot();
+		dealBump();
+		PC  -> checkAndDeal();
+		EM  -> checkAndDeal();
+		BLT -> checkAndDeal();
+	}
+	if(state == GameState::WIN ||state == GameState::LOSE ){
+		PC  -> shoot();
+		PC  -> checkAndDeal();
+		BLT -> checkAndDeal();
+	}
 }
 
 void SignalRouter::moveAll(){
-	PC  -> move();
-	EM  -> moveAll();
-	BLT -> moveAll();
-	PRP -> moveAll();
+	if(state == GameState::RUN){
+		PC  -> move();
+		EM  -> moveAll();
+		BLT -> moveAll();
+		PRP -> moveAll();
+	}
+	if(state == GameState::BOSS){
+		PC  -> move();
+		EM  -> moveAll();
+		BLT -> moveAll();
+	}
+	if(state == GameState::WIN ||state == GameState::LOSE ){
+		PC  -> move();
+		BLT -> moveAll();
+	}
+	
 }
 
 void SignalRouter::dealBump(){
@@ -65,7 +120,7 @@ void SignalRouter::dealBump(){
 				if(PC -> BPB -> ifBumped() == BumpState::BUMPED){
 					(PC -> life)--;
 					PC -> BPB -> state = BumpState::NOTBUMPED;
-					PC -> ProtectedTime += 240;
+					PC -> ProtectedTime = 240;
 					PC -> state = PlayerState::PROTECTED;
 					(EM -> enemies[i].life)--;
 					EM -> enemies[i].BPB -> state = BumpState::NOTBUMPED;
@@ -80,7 +135,7 @@ void SignalRouter::dealBump(){
 				if(PC -> BPB -> ifBumped() == BumpState::BUMPED){
 					(PC -> life)--;
 					PC -> BPB -> state = BumpState::NOTBUMPED;
-					PC -> ProtectedTime += 240;
+					PC -> ProtectedTime = 240;
 					PC -> state = PlayerState::PROTECTED;
 					break;
 				}
@@ -103,46 +158,23 @@ void SignalRouter::dealBump(){
 		}
 	}
 	//PLAYER WITH PROP
-	for(int j = 0; j < PC -> BPB -> size; ++j){
-		PC -> BPB -> BumpUnit[j].r = 10;
-	}
 	for(int i = 0; i < PRP -> max_prop; ++i){
 		if(PRP -> props[i].state == PropState::ON && PC -> state != PlayerState::DIE){
 			PC -> BPB -> BumpDetect(PRP -> props[i].BPB);
 			PC -> BPB -> state = BumpState::NOTBUMPED;
 		}
 	}
-	for(int j = 0; j < PC -> BPB -> size; ++j){
-		PC -> BPB -> BumpUnit[j].r = 5;
-	}
+
+}
+
+void SignalRouter::bombReset(){
+	EM -> reset();
+	PC -> ProtectedTime += 960;
+	PC -> state = PlayerState::PROTECTED;
 }
 
 void SignalRouter::reset(){
 	//TODO
-}
-
-void BumpBox::init(const int type, const PointD &p, const int &PicW, const int &PicH){
-	switch(type){
-		case ObjId::PLAYER:
-			size = 1;
-			BumpUnit[0].unitPos = p;
-			BumpUnit[0].r = 5;
-			break;
-		case ObjId::ENEMY:
-			size = 1;
-			BumpUnit[0].unitPos = p;
-			BumpUnit[0].r = 10.3;
-			break;
-		case ObjId::NORMALBULLET:
-			size = 1;
-			BumpUnit[0].unitPos = p;
-			BumpUnit[0].r = 5;
-			break;
-		case ObjId::PROP:
-			size = 1;
-			BumpUnit[0].unitPos = p;
-			BumpUnit[0].r = 10;
-	}
 }
 
 
@@ -152,6 +184,8 @@ UserInteract::~UserInteract(){
 	cleanup(CraftSam);
 	cleanup(NumberPic);
 	cleanup(Multiply);
+	cleanup(Lose);
+	cleanup(Win);
 }
 
 void UserInteract::init(){
@@ -160,11 +194,15 @@ void UserInteract::init(){
 	CraftSam = loadImage(CRAFTSAM);
 	NumberPic = loadImage(NUMBERS);
 	Multiply = loadImage(MULTIPLY);
+	Lose = loadImage(LOSE);
+	Win = loadImage(WIN);
 	getImageSize(ScoreTitle, ScoreTitleW, ScoreTitleH);
 	getImageSize(CraftSam, CraftSamW, CraftSamH);
 	getImageSize(BombSam, BombSamW, BombSamH);
 	getImageSize(NumberPic, NumberPicW ,NumberPicH);
 	getImageSize(Multiply, MultiplyW, MultiplyH);
+	getImageSize(Lose, LoseW, LoseH);
+	getImageSize(Win, WinW, WinH);
 }
 
 void UserInteract::drawHint(){
@@ -198,6 +236,54 @@ void UserInteract::drawHint(){
 		p *= 10;
 	}
 }
+
+void UserInteract::drawEnd(const int res){
+	if(res == GameState::WIN){
+		drawImage(Win, SCR_W - WinW / 2, SCR_H / 2 -WinH / 2);
+	}
+	else{
+		drawImage(Lose, SCR_W - LoseW / 2, SCR_H / 2 -LoseH / 2);
+	}
+}
+
+void BumpBox::init(const int type, const PointD &p, const int &PicW, const int &PicH){
+	switch(type){
+		case ObjId::PLAYER:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = 8;
+			break;
+		case ObjId::ENEMY:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = 10.3;
+			break;
+		case ObjId::NORMALBULLET:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = 5;
+			break;
+		case ObjId::PROP:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = 10;
+			break;
+		case ObjId::BOSS:
+			size = 5;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = 45;
+			BumpUnit[1].unitPos = p - PointD(90, -10);
+			BumpUnit[1].r = 10;
+			BumpUnit[2].unitPos = p - PointD(50,0);
+			BumpUnit[2].r = 5;
+			BumpUnit[3].unitPos = p + PointD(70, 15);
+			BumpUnit[3].r = 10;
+			BumpUnit[4].unitPos = p + PointD(50, -45);
+			BumpUnit[2].r = 5;
+			break;
+	}
+}
+
 
 void BumpBox::move(const PointD &v, const double sp){
 	//drawImage(dot, BumpUnit[0].unitPos.x - 7.5, BumpUnit[0].unitPos.y - 7.5);
@@ -271,6 +357,10 @@ void PaperObj::move(){
 PlayerCraft::~PlayerCraft(){
 	cleanup(PlayerPic);
 	cleanup(Protector);
+}
+
+inline PointD PlayerCraft::getPos(){
+	return pos;
 }
 
 void PlayerCraft::init(const PointD &p, const double _speed){
@@ -360,8 +450,12 @@ void PlayerCraft::checkAndDeal(){
 			state = PlayerState::LIVE;
 		}
 	}
-	if(state == PlayerState::DIE){
-		//TODO
+	if(life <= 0){
+		SR -> state = GameState::LOSE;
+	}
+	if(SR -> keyboard['b'] && bomb > 0 && SR -> state != GameState::BOSS){
+		SR -> bombReset();
+		bomb--;
 	}
 }
 
@@ -379,25 +473,46 @@ void EnemyCraft::init(const PointD &p, const double _speed, const int type){
 		//TODO
 	}
 	else if(type == EnemyState::BOSS){
-		//TODO
+		life = 150;
+		last_shoot = 200;
+		status = type;
+		BPB -> init(ObjId::BOSS, p, speed);
 	}
 }
-void EnemyCraft::shoot(const int strategy, const SignalRouter *SR){
+void EnemyCraft::shoot(const int strategy, const SignalRouter *SR, const PointD &centre, const PointD &drct = PointD()){
 	if(strategy == BulletState::HALFROUNDSHOOT){
 		if(last_shoot < 150){
 			last_shoot++;
 			return;
 		}
 		else{
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(-sqrt(3), 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(-1 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(-1 , sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(-1 , 2 + sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(0 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(1 , 2 + sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(1 , sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(1 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(sqrt(3) , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-sqrt(3), 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-1 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-1 , sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-1 , 2 + sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(0 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(1 , 2 + sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(1 , sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(1 , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(sqrt(3) , 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			last_shoot = 0;
+		}
+	}
+	if(strategy == BulletState::REVERSEHALFROUNDSHOOT){
+		if(last_shoot < 150){
+			last_shoot++;
+			return;
+		}
+		else{
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-sqrt(3), -1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-1 , -1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-1 , -sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(-1 , -2 - sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(0 , -1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(1 , -2 - sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(1 , -sqrt(3)), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(1 , -1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(sqrt(3) , -1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
 			last_shoot = 0;
 		}
 	}
@@ -407,8 +522,17 @@ void EnemyCraft::shoot(const int strategy, const SignalRouter *SR){
 			return;
 		}
 		else{
-			SR -> BLT -> allocateNewBullet(PointD(pos.x, pos.y + 20), PointD(0, 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			SR -> BLT -> allocateNewBullet(PointD(centre.x, centre.y + 20), PointD(0, 1), speed + BulletState::NORMALSPEED, ObjId::ENEMY);
 			last_shoot = 0;
+		}
+	}
+	if(strategy == BulletState::TRACESHOOT){
+		if(last_shoot < 50){
+			last_shoot++;
+			return;
+		}
+		else{
+			SR -> BLT -> allocateNewBullet(centre,drct - centre, speed + BulletState::NORMALSPEED, ObjId::ENEMY);
 		}
 	}
 }
@@ -437,6 +561,7 @@ void Enemy::init(const int start_amount, const int max_amount){
 	current_enemy = start_amount;
 	max_enemy = max_amount;
 	EnemyPicNormal = loadImage(ENEMYPICNORMAL);
+	EnemyPicBoss = 	loadImage(ENEMYPICBOSS);
 	enemies = new EnemyCraft[max_amount];
 	for(int i = 0; i < start_amount; ++i){
 		enemies[i].init(PointD(rand() % (SCR_W - 40) + 20, 20), rand() % EnemyState::NORMALSPEED + 2, EnemyState::NORMAL);
@@ -472,15 +597,41 @@ void Enemy::allocateNewEnemy(){
 		//std::cout << current_enemy << std::endl;
 }
 
+void Enemy::allocateBoss(){
+	int count = 0;
+	for(int i = 0; i < max_enemy; ++i){
+		if(enemies[i].state == EnemyState::LIVE){
+			enemies[i].speedSet(20);
+			count++;
+			if(count == current_enemy){
+				break;
+			}
+		}
+	}
+	for(int i = 0; i < max_enemy; ++i){
+		if(enemies[i].state == EnemyState::INIT){
+			enemies[i].state = EnemyState::LIVE;
+			enemies[i].init(PointD(SCR_W / 2, 0), 1 ,EnemyState::BOSS);
+		}
+	}
+	
+}
+
 void Enemy::moveAll(){
 	int count = 0;
 	for(int i = 0;i < max_enemy; ++i){
 		if(enemies[i].state == EnemyState::LIVE){
-			enemies[i].move();
-			++count;
-			/*if(count == current_enemy){
-				break;
-			}*/
+			if(enemies[i].status != EnemyState::BOSS){
+				enemies[i].move();
+			}
+			else{
+				if(enemies[i].pos.y >= SCR_H / 4){
+					continue;
+				}
+				else{
+					enemies[i].move();
+				}
+			}
 		}
 	}
 }
@@ -497,6 +648,9 @@ void Enemy::checkAndDeal(){
 	int tmp = 0;
 	for(int i = 0; i < max_enemy; ++i){
 		if(enemies[i].state == EnemyState::LIVE){
+			if(enemies[i].status == EnemyState::BOSS){
+				std::cerr << enemies[i].life << std::endl;
+			}
 			if(enemies[i].life <= 0){
 				tmp = rand() / 1000000;
 				if(tmp < 500){
@@ -512,15 +666,22 @@ void Enemy::checkAndDeal(){
 				}
 				if(enemies[i].status == EnemyState::NORMAL){
 					SR -> PC -> addScore(1);
-					SR -> PC -> addEnergy(1);
 				}
 				else if(enemies[i].status == EnemyState::BIG){
 					SR -> PC -> addScore(5);
-					SR -> PC -> addEnergy(5);
 				}
 				else if(enemies[i].status == EnemyState::BOSS){
-					SR -> PC -> addScore(50);
-					SR -> PC -> addEnergy(50);
+					SR -> state = GameState::WIN;
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_LIFE);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_LIFE);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_LIFE);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
+					SR -> PC -> addScore(500);
 				}
 				enemies[i].reset();
 				current_enemy--;
@@ -544,7 +705,7 @@ void Enemy::drawAll(){
 				//TODO
 			}
 			else if(enemies[i].status == EnemyState::BOSS){
-				//TODO
+				enemies[i].drawEnemy(EnemyPicBoss);
 			}
 			count++;
 			if(count == current_enemy){
@@ -561,23 +722,46 @@ void Enemy::shootAll(){
 			count++;
 			if(enemies[i].status == EnemyState::NORMAL){
 				if(enemies[i].speed <= 3){
-					enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR);
+					enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR, enemies[i].pos);
 				}
 				else{
-					enemies[i].shoot(BulletState::STRAIGHTSHOOT, SR);
+					enemies[i].shoot(BulletState::STRAIGHTSHOOT, SR, enemies[i].pos);
 				}
 			}
 			else if(enemies[i].status == EnemyState::BIG){
 				//TODO
 			}
 			else if(enemies[i].status == EnemyState::BOSS){
-				//TODO
+				if(enemies[i].last_shoot < 60){
+					++enemies[i].last_shoot;
+					return;
+				}
+				enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR, enemies[i].pos - PointD(50, 0));
+				enemies[i].last_shoot = 200;
+				enemies[i].shoot(BulletState::REVERSEHALFROUNDSHOOT, SR, enemies[i].pos - PointD(50, 0));
+				enemies[i].last_shoot = 200;
+				enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR, enemies[i].pos);
+				enemies[i].last_shoot = 200;
+				enemies[i].shoot(BulletState::REVERSEHALFROUNDSHOOT, SR, enemies[i].pos + PointD(50, 0));
+				enemies[i].last_shoot = 200;
+				enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR, enemies[i].pos + PointD(50,0));
+				enemies[i].last_shoot = 200;
+				enemies[i].shoot(BulletState::TRACESHOOT, SR, enemies[i].pos, SR -> PC -> getPos());
+				enemies[i].last_shoot = 0;
 			}
 			if(count == current_enemy){
 				break;
 			}
 		}
 	}
+}
+
+void Enemy::reset(){
+	for(int i = 0; i < max_enemy; ++i){
+		enemies[i].reset();
+	}
+		current_enemy = 0;
+		last_allocate = 100;
 }
 
 void PaperBullet::init(const PointD &p, const PointD &v, const double sp){
