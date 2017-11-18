@@ -35,6 +35,7 @@ void SignalRouter::drawAll(){
 
 void SignalRouter::dealAll(){
 	EM  -> allocateNewEnemy();
+	PRP -> randomAllocate();
 	EM  -> shootAll();
 	PC  -> shoot();
 	dealBump();
@@ -60,6 +61,8 @@ void SignalRouter::dealBump(){
 				if(PC -> BPB -> ifBumped() == BumpState::BUMPED){
 					(PC -> life)--;
 					PC -> BPB -> state = BumpState::NOTBUMPED;
+					PC -> ProtectedTime += 240;
+					PC -> state = PlayerState::PROTECTED;
 					(EM -> enemies[i].life)--;
 					EM -> enemies[i].BPB -> state = BumpState::NOTBUMPED;
 					break;
@@ -125,6 +128,10 @@ void BumpBox::init(const int type, const PointD &p, const int &PicW, const int &
 			BumpUnit[0].unitPos = p;
 			BumpUnit[0].r = 5;
 			break;
+		case ObjId::PROP:
+			size = 1;
+			BumpUnit[0].unitPos = p;
+			BumpUnit[0].r = 10;
 	}
 }
 
@@ -423,11 +430,24 @@ void Enemy::velocityChangeAll(const PointD &v){
 }
 
 void Enemy::checkAndDeal(){
+	int tmp = 0;
 	for(int i = 0; i < max_enemy; ++i){
 		if(enemies[i].state == EnemyState::LIVE){
 			if(enemies[i].life <= 0){
 				enemies[i].reset();
 				current_enemy--;
+				tmp = rand() / 10000000;
+				if(tmp < 500){
+					if(tmp > 100){
+						SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
+					}
+					else if(tmp > 10){
+						SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_LIFE);
+					}
+					else{
+						SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
+					}
+				}
 			}
 			if(enemies[i].pos.y >= SCR_H + 20){
 				enemies[i].reset();
@@ -604,7 +624,7 @@ void PaperProp::reset(){
 void PaperProp::drawProp(Image *img){
 	int w = 0, h = 0;
 	getImageSize(img, w, h);
-	drawImage(img, pos.x - w / 2, pos.y - h / 2);
+	drawImage(img, pos.x - w / 2, pos.y - h / 2, 1, 1);
 }
 
 Prop::~Prop(){
@@ -658,11 +678,12 @@ void Prop::checkAndDeal(){
 	for(int i = 0; i < max_prop ;++i){
 		if(props[i].state == PropState::ON){
 			if(props[i].BPB -> ifBumped() == BumpState::BUMPED){
+				//std::cout << "BUMPED" <<std::endl;
 				if(props[i].prop_type == PropState::ADD_LIFE){
 					SR -> PC -> addLife(1);
 				}
 				else if(props[i].prop_type == PropState::ADD_ENER){
-					SR -> PC -> addEnergy(5);
+					SR -> PC -> addEnergy(10);
 				}
 				else if(props[i].prop_type == PropState::ADD_BOMB){
 					SR -> PC -> addBomb(1);
@@ -681,23 +702,39 @@ void Prop::allocateNewProp(const int type, const PointD &p, const PointD &v, con
 		if(props[i].state == PropState::OFF){
 			props[i].init(type, p, v, sp);
 			props[i].state = PropState::ON;
+			return;
+		}
+	}
+}
+
+void Prop::allocateNewProp(const EnemyCraft &wreck, const int t){
+	for(int i = 0; i < max_prop; ++i){
+		if(props[i].state == PropState::OFF){
+			std::cout << "wreck" << std::endl;
+			props[i] = PaperProp(wreck);
+			props[i].prop_type = t;
+			props[i].state = PropState::ON;
+			return;
 		}
 	}
 }
 
 void Prop::randomAllocate(){
-	int f = rand() / 100000;
+	int f = rand() / 50000;
 	if(f > 100){
 		return;
 	}
 	else if(f > 50){
 		allocateNewProp(PropState::ADD_ENER, PointD(rand() % (SCR_W - 40) + 20, 0), PointD(0, 1), rand() % 2 + 1);
+		return;
 	}
-	else if(f > 20){
+	else if(f > 10){
 		allocateNewProp(PropState::ADD_LIFE, PointD(rand() % (SCR_W - 40) + 20, 0), PointD(0, 1), rand() % 2 + 1);
+		return;
 	}
 	else{
 		allocateNewProp(PropState::ADD_BOMB, PointD(rand() % (SCR_W - 40) + 20, 0), PointD(0, 1), rand() % 2 + 1);
+		return;
 	}
 }
 

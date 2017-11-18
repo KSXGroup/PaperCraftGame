@@ -11,9 +11,9 @@ const std::string ROUNDPIC = "round.png";
 const std::string PLAYERPIC = "paper.png";
 const std::string ENEMYPICNORMAL = "enemy1.png";
 const std::string BULLETPIC = "bullet2.png";
-const std::string PROPLIFE = "life1.png";
-const std::string PROPENER = "ener.png";
-const std::string PROPBOMB = "bomb1.png";
+const std::string PROPLIFE = "life.png";
+const std::string PROPENER = "energy.png";
+const std::string PROPBOMB = "bomb.png";
 //const std::string SCORETITLE = "score.png";
 const std::string NUMBERS = "numbers1.png";
 const int SCR_W = Game::SCREEN_WIDTH - 350;
@@ -140,7 +140,7 @@ class BumpBox{
 		}
 		virtual ~BumpBox(){
 			delete [] BumpUnit;
-		//	cleanup(dot);
+			//cleanup(dot);
 		}
 		void init(const int type, const PointD &p, const int &PicW = 10, const int &PicH = 10);
 		void posChange(const PointD &v){
@@ -312,10 +312,13 @@ class PaperProp : public PaperObj{
 		friend class Prop;
 		friend class SignalRouter;
 		PaperProp(const EnemyCraft &wreck) : PaperObj(){
+			std::cerr << "startcopy" << std::endl;
 			velocity = wreck.velocity;
 			pos.x = wreck.pos.x;
 			pos.y = wreck.pos.y;
 			speed = wreck.speed;
+			BPB -> init(ObjId::PROP, wreck.pos);
+			std::cerr << "endcopy" << std::endl;
 		}
 		PaperProp():PaperObj(){}
 		virtual ~PaperProp() = default;
@@ -340,6 +343,7 @@ class Prop{
 		void checkAndDeal();
 		void randomAllocate();
 		void allocateNewProp(const int type, const PointD &p, const PointD &v,const double sp);
+		void allocateNewProp(const EnemyCraft &wreck, const int t);
 	private:
 		SignalRouter *SR = nullptr;
 		PaperProp *props = nullptr;

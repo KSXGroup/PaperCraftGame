@@ -2,7 +2,7 @@
 using namespace Game;
 const int Game::SCREEN_WIDTH	= 1024;
 const int Game::SCREEN_HEIGHT	= 768;
-const std::string Game::TitleName = "NOT A Simple Game Demo";
+const std::string Game::TitleName = "Simple And Naïve Game";
 SignalRouter *ctrl = new SignalRouter;
 
 void initialize(){
