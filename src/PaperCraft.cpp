@@ -99,11 +99,17 @@ void SignalRouter::dealBump(){
 		}
 	}
 	//PLAYER WITH PROP
+	for(int j = 0; j < PC -> BPB -> size; ++j){
+		PC -> BPB -> BumpUnit[j].r = 10;
+	}
 	for(int i = 0; i < PRP -> max_prop; ++i){
 		if(PRP -> props[i].state == PropState::ON && PC -> state != PlayerState::DIE){
 			PC -> BPB -> BumpDetect(PRP -> props[i].BPB);
 			PC -> BPB -> state = BumpState::NOTBUMPED;
 		}
+	}
+	for(int j = 0; j < PC -> BPB -> size; ++j){
+		PC -> BPB -> BumpUnit[j].r = 5;
 	}
 }
 
@@ -405,7 +411,7 @@ void Enemy::allocateNewEnemy(){
 		}
 		last_allocate = 0;
 	}
-		std::cout << current_enemy << std::endl;
+		//std::cout << current_enemy << std::endl;
 }
 
 void Enemy::moveAll(){
@@ -434,9 +440,7 @@ void Enemy::checkAndDeal(){
 	for(int i = 0; i < max_enemy; ++i){
 		if(enemies[i].state == EnemyState::LIVE){
 			if(enemies[i].life <= 0){
-				enemies[i].reset();
-				current_enemy--;
-				tmp = rand() / 10000000;
+				tmp = rand() / 1000000;
 				if(tmp < 500){
 					if(tmp > 100){
 						SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
@@ -448,6 +452,8 @@ void Enemy::checkAndDeal(){
 						SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
 					}
 				}
+				enemies[i].reset();
+				current_enemy--;
 			}
 			if(enemies[i].pos.y >= SCR_H + 20){
 				enemies[i].reset();
@@ -710,10 +716,11 @@ void Prop::allocateNewProp(const int type, const PointD &p, const PointD &v, con
 void Prop::allocateNewProp(const EnemyCraft &wreck, const int t){
 	for(int i = 0; i < max_prop; ++i){
 		if(props[i].state == PropState::OFF){
-			std::cout << "wreck" << std::endl;
-			props[i] = PaperProp(wreck);
+			//std::cerr << "NEW" <<wreck.pos.x << wreck.pos.y<< std::endl;
+			props[i].init(t, wreck.pos, wreck.velocity, wreck.speed);
 			props[i].prop_type = t;
 			props[i].state = PropState::ON;
+			props[i].BPB -> init(ObjId::PROP, wreck.pos);
 			return;
 		}
 	}

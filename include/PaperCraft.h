@@ -230,7 +230,7 @@ class EnemyCraft : public PaperObj{
 	public:
 		friend class SignalRouter;
 		friend class Enemy;
-		friend class PaperProp;
+		friend class Prop;
 		EnemyCraft() : PaperObj(){}
 		virtual ~EnemyCraft() = default;//remember to delete and clean!
 		void init(const PointD &p, const double _speed , const int type);
@@ -311,7 +311,7 @@ class PaperProp : public PaperObj{
 	public:
 		friend class Prop;
 		friend class SignalRouter;
-		PaperProp(const EnemyCraft &wreck) : PaperObj(){
+		/*PaperProp(const EnemyCraft &wreck) : PaperObj(){
 			std::cerr << "startcopy" << std::endl;
 			velocity = wreck.velocity;
 			pos.x = wreck.pos.x;
@@ -319,7 +319,7 @@ class PaperProp : public PaperObj{
 			speed = wreck.speed;
 			BPB -> init(ObjId::PROP, wreck.pos);
 			std::cerr << "endcopy" << std::endl;
-		}
+		}*/
 		PaperProp():PaperObj(){}
 		virtual ~PaperProp() = default;
 		void init(const int type, const PointD &p,const PointD &v, const double sp);
