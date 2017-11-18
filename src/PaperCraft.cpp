@@ -6,6 +6,7 @@ SignalRouter::SignalRouter(){
 	EM = new Enemy(this);
 	BLT = new Bullet(this);
 	PRP = new Prop(this);
+	UI = new UserInteract(this);
 }
 
 SignalRouter::~SignalRouter(){
@@ -14,6 +15,7 @@ SignalRouter::~SignalRouter(){
 	delete EM;
 	delete BLT;
 	delete PRP;
+	delete UI;
 }
 
 void SignalRouter::init(){
@@ -22,6 +24,7 @@ void SignalRouter::init(){
 	EM  -> init(max / 2, max);
 	BLT -> init(20 * max);
 	PRP -> init(max);
+	UI  -> init();
 }
 
 void SignalRouter::drawAll(){
@@ -31,6 +34,7 @@ void SignalRouter::drawAll(){
 	PRP -> drawAll();
 	setPenColor((Color){200, 200, 200, 255});
 	drawRect(Rect{674,0,350,768},1);
+	UI -> drawHint();
 }
 
 void SignalRouter::dealAll(){
@@ -141,6 +145,60 @@ void BumpBox::init(const int type, const PointD &p, const int &PicW, const int &
 	}
 }
 
+
+UserInteract::~UserInteract(){
+	cleanup(ScoreTitle);
+	cleanup(BombSam);
+	cleanup(CraftSam);
+	cleanup(NumberPic);
+	cleanup(Multiply);
+}
+
+void UserInteract::init(){
+	ScoreTitle = loadImage(SCORETITLE);
+	BombSam = loadImage(BOMBSAM);
+	CraftSam = loadImage(CRAFTSAM);
+	NumberPic = loadImage(NUMBERS);
+	Multiply = loadImage(MULTIPLY);
+	getImageSize(ScoreTitle, ScoreTitleW, ScoreTitleH);
+	getImageSize(CraftSam, CraftSamW, CraftSamH);
+	getImageSize(BombSam, BombSamW, BombSamH);
+	getImageSize(NumberPic, NumberPicW ,NumberPicH);
+	getImageSize(Multiply, MultiplyW, MultiplyH);
+}
+
+void UserInteract::drawHint(){
+	int score = SR -> PC -> score;
+	int life = SR -> PC -> life;
+	int energy = SR -> PC -> energy;
+	int bomb = SR -> PC -> bomb;
+	int p = 1;
+	Rect clip;
+	drawImage(ScoreTitle, 800 - ScoreTitleW / 2, 80 - ScoreTitleH / 2);
+	//std::cout << "ADD POINT:" <<score << std::endl;
+	for(int i = 1; i <= 6; ++i){
+		clip = Rect{(score % (10 * p)) / p * NumberPicW / 10,0, NumberPicW / 10, NumberPicH };
+		drawImage(NumberPic, 784 + 6 * NumberPicW / 10 - (i + 1) * NumberPicW / 10 , 150 - NumberPicH / 2, 1, 1, 0, NULL, FLIP_NONE, &clip);
+		p *= 10;
+	}
+	p = 1;
+	drawImage(CraftSam, 770 - CraftSamW / 2, 270 - CraftSamH / 2);
+	drawImage(Multiply, 770 + 90 - MultiplyW / 2, 270 - MultiplyH / 2);
+	for(int i = 1; i <= 2; ++i){
+		clip = Rect{(life % (10 * p)) / p * NumberPicW / 10,0, NumberPicW / 10, NumberPicH };
+		drawImage(NumberPic, 800 + 6 * NumberPicW / 10 - (i + 1) * NumberPicW / 10 , 270 - NumberPicH / 2, 1,1, 0, NULL, FLIP_NONE, &clip);
+		p *= 10;
+	}
+	p = 1;
+	drawImage(BombSam, 770 - BombSamW / 2, 380 - BombSamH / 2);
+	drawImage(Multiply, 770 + 90 - MultiplyW / 2, 380 - MultiplyH / 2);
+	for(int i = 1; i <= 2; ++i){
+		clip = Rect{(bomb % (10 * p)) / p * NumberPicW / 10,0, NumberPicW / 10, NumberPicH };
+		drawImage(NumberPic, 800 + 6 * NumberPicW / 10 - (i + 1) * NumberPicW / 10 , 380 - NumberPicH / 2, 1,1, 0, NULL, FLIP_NONE, &clip);
+		p *= 10;
+	}
+}
+
 void BumpBox::move(const PointD &v, const double sp){
 	//drawImage(dot, BumpUnit[0].unitPos.x - 7.5, BumpUnit[0].unitPos.y - 7.5);
 	PointD tmp = v;
@@ -158,7 +216,7 @@ void BumpBox::reset(){
 		BumpUnit[i].unitPos = PointD();
 		BumpUnit[i].r = -1;
 	}
-	state =BumpState::NOTBUMPED;
+	state = BumpState::NOTBUMPED;
 }
 
 
@@ -289,9 +347,9 @@ void PlayerCraft::drawPlayer(){
 	}
 }
 
-void PlayerCraft::drawAttachments(){
+//void PlayerCraft::drawAttachments(){
 	//TODO
-}
+//}
 
 void PlayerCraft::checkAndDeal(){
 	if(ProtectedTime > 0){
@@ -397,7 +455,7 @@ void Enemy::allocateNewEnemy(){
 	}
 	else{
 		srand(time(NULL));
-		to_allocate = rand() % (max_enemy - current_enemy) + 2;
+		to_allocate = rand() % (max_enemy - current_enemy / 2) + 2;
 		current_enemy += to_allocate;
 		for(int i = 0; i < max_enemy; ++i){
 			if(enemies[i].state == EnemyState::INIT){
@@ -451,6 +509,18 @@ void Enemy::checkAndDeal(){
 					else{
 						SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
 					}
+				}
+				if(enemies[i].status == EnemyState::NORMAL){
+					SR -> PC -> addScore(1);
+					SR -> PC -> addEnergy(1);
+				}
+				else if(enemies[i].status == EnemyState::BIG){
+					SR -> PC -> addScore(5);
+					SR -> PC -> addEnergy(5);
+				}
+				else if(enemies[i].status == EnemyState::BOSS){
+					SR -> PC -> addScore(50);
+					SR -> PC -> addEnergy(50);
 				}
 				enemies[i].reset();
 				current_enemy--;
@@ -689,7 +759,7 @@ void Prop::checkAndDeal(){
 					SR -> PC -> addLife(1);
 				}
 				else if(props[i].prop_type == PropState::ADD_ENER){
-					SR -> PC -> addEnergy(10);
+					SR -> PC -> addEnergy(5);
 				}
 				else if(props[i].prop_type == PropState::ADD_BOMB){
 					SR -> PC -> addBomb(1);

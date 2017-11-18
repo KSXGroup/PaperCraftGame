@@ -14,8 +14,11 @@ const std::string BULLETPIC = "bullet2.png";
 const std::string PROPLIFE = "life.png";
 const std::string PROPENER = "energy.png";
 const std::string PROPBOMB = "bomb.png";
-//const std::string SCORETITLE = "score.png";
-const std::string NUMBERS = "numbers1.png";
+const std::string SCORETITLE = "score.png";
+const std::string BOMBSAM = "bombsam1.png";
+const std::string CRAFTSAM = "craftsam.png";
+const std::string NUMBERS = "numbers.png";
+const std::string MULTIPLY = "multiply.png";
 const int SCR_W = Game::SCREEN_WIDTH - 350;
 const int SCR_H = Game::SCREEN_HEIGHT;
 
@@ -24,6 +27,7 @@ class Bullet;
 class Enemy;
 class SignalRouter;
 class Prop;
+class UserInteract;
 
 struct ObjId{
 	static const int PLAYER = 0;
@@ -99,6 +103,7 @@ class SignalRouter{
 		friend class EnemyCraft;
 		friend class Bullet;
 		friend class Prop;
+		friend class UserInteract;
 		SignalRouter();
 		virtual ~SignalRouter();
 		void init();
@@ -118,17 +123,29 @@ class SignalRouter{
 		Enemy *EM = nullptr;
 		Bullet *BLT = nullptr;
 		Prop *PRP = nullptr;
+		UserInteract *UI = nullptr;
 };
 
 class UserInteract{
 	public:
 		UserInteract(SignalRouter *sig):SR(sig){}
 		virtual ~UserInteract();
+		void init();
 		void drawHint(); //TODO
 		void drawWelcome(); //TODO
 		void drawEnd(); //TODO
 	private:
 		SignalRouter *SR;
+		Image *ScoreTitle = nullptr;
+		int ScoreTitleH = 0, ScoreTitleW = 0;
+		Image *BombSam = nullptr;
+		int BombSamH = 0, BombSamW = 0;
+		Image *CraftSam = nullptr;
+		int CraftSamH = 0, CraftSamW = 0;
+		Image *NumberPic = nullptr;
+		int NumberPicH = 0, NumberPicW = 0;
+		Image *Multiply = nullptr;
+		int MultiplyH = 0, MultiplyW = 0;
 };
 
 class BumpBox{
@@ -182,6 +199,7 @@ class PaperObj{
 class PlayerCraft : public PaperObj{
 	public:
 		friend class SignalRouter;
+		friend class UserInteract;
 		PlayerCraft(SignalRouter *sig) : PaperObj(){
 			SR = sig;
 		}
@@ -190,19 +208,28 @@ class PlayerCraft : public PaperObj{
 		void move() override;
 		void shoot();
 		void drawPlayer();
-		void drawAttachments(); //TODO
+		//void drawAttachments(); //TODO
 		void checkAndDeal();
 		inline void addScore(const int sc){
 			score += sc;
 		}
 		inline void addLife(const int lf){
 			life += lf;
+			if(life > 99){
+				life = 99;
+			}
 		}
 		inline void addEnergy(const int en){
 			energy += en;
+			if(energy > 100){
+				energy = 100;
+			}
 		}
 		inline void addBomb(const int bo){
 			bomb += bo;
+			if(bomb > 99){
+				bomb = 99;
+			}
 		}
 		//void kbdRecv(const int &key);
 		int state = PlayerState::LIVE;
@@ -221,7 +248,7 @@ class PlayerCraft : public PaperObj{
 		int PicAlpha = 255;
 		int life = 5;
 		int energy = 100;
-		int bomb = 0;
+		int bomb = 2;
 		int score = 0;
 
 };
