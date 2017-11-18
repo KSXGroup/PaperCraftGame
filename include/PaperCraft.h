@@ -11,10 +11,10 @@ const std::string ROUNDPIC = "round.png";
 const std::string PLAYERPIC = "paper.png";
 const std::string ENEMYPICNORMAL = "enemy1.png";
 const std::string BULLETPIC = "bullet2.png";
-const std::string PROPLIFE = "life.png";
-const std::string PROPENER = "energy.png";
-const std::string PROPBOMB = "bomb.png";
-const std::string SCORETITLE = "score.png";
+const std::string PROPLIFE = "life1.png";
+const std::string PROPENER = "ener.png";
+const std::string PROPBOMB = "bomb1.png";
+//const std::string SCORETITLE = "score.png";
 const std::string NUMBERS = "numbers1.png";
 const int SCR_W = Game::SCREEN_WIDTH - 350;
 const int SCR_H = Game::SCREEN_HEIGHT;
@@ -140,7 +140,7 @@ class BumpBox{
 		}
 		virtual ~BumpBox(){
 			delete [] BumpUnit;
-			//cleanup(dot);
+		//	cleanup(dot);
 		}
 		void init(const int type, const PointD &p, const int &PicW = 10, const int &PicH = 10);
 		void posChange(const PointD &v){
@@ -217,6 +217,7 @@ class PlayerCraft : public PaperObj{
 		int ProtectorW = 0;
 		int last_shoot = 10;
 		int ProtectedTime = 240;
+		int ProtectedCount = 0;
 		int PicAlpha = 255;
 		int life = 5;
 		int energy = 100;
