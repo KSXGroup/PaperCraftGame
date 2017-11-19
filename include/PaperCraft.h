@@ -276,6 +276,7 @@ class PlayerCraft : public PaperObj{
 		Image *Protector = nullptr;
 		SignalRouter *SR = nullptr;
 		bool ifMove = true;
+		int last_bomb = 0;
 		int PlayerPicH = 0;
 		int PlayerPicW = 0;
 		int ProtectorH = 0;
@@ -284,7 +285,7 @@ class PlayerCraft : public PaperObj{
 		int ProtectedTime = 240;
 		int ProtectedCount = 0;
 		int PicAlpha = 255;
-		int life = 10;
+		int life = 99;
 		int energy = 100;
 		int bomb = 2;
 		int score = 0;

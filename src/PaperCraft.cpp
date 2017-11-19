@@ -59,7 +59,7 @@ void SignalRouter::drawAll(){
 }
 
 void SignalRouter::dealAll(){
-	if(PC -> score >= 50 && state == GameState::RUN){
+	if(PC -> score >= 150 && state == GameState::RUN){
 		state = GameState::BOSS;
 		EM -> allocateBoss();
 	}
@@ -169,7 +169,7 @@ void SignalRouter::dealBump(){
 
 void SignalRouter::bombReset(){
 	EM -> reset();
-	PC -> ProtectedTime += 960;
+	PC -> ProtectedTime += 480;
 	PC -> state = PlayerState::PROTECTED;
 }
 
@@ -516,9 +516,14 @@ void PlayerCraft::checkAndDeal(){
 	if(life <= 0){
 		SR -> state = GameState::LOSE;
 	}
-	if(SR -> keyboard['b'] && bomb > 0 && SR -> state != GameState::BOSS){
+	if(SR -> keyboard['b'] && bomb > 0 && SR -> state != GameState::BOSS ){
+		if(last_bomb > 0){
+			last_bomb--;
+			return;
+		}
 		SR -> bombReset();
 		bomb--;
+		last_bomb = 10;
 	}
 }
 
