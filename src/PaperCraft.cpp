@@ -28,9 +28,9 @@ void SignalRouter::init(){
 }
 
 void SignalRouter::drawAll(){
-	/*if(state == GameState::INIT){
+	if(state == GameState::INIT){
 		UI -> drawWelcome();
-	}*/
+	}
 	if(state == GameState::RUN){
 		PC  -> drawPlayer();
 		EM  -> drawAll();
@@ -64,7 +64,7 @@ void SignalRouter::dealAll(){
 		EM -> allocateBoss();
 	}
 	if(state == GameState::INIT){
-		//UI -> checkAndDeal();
+		UI -> checkAndDeal();
 	}
 	if(state == GameState::RUN){
 		EM  -> allocateNewEnemy();
@@ -188,6 +188,10 @@ UserInteract::~UserInteract(){
 	cleanup(Win);
 	cleanup(YouWin);
 	cleanup(YouLose);
+	cleanup(Final);
+	cleanup(Logo);
+	cleanup(Start1);
+	cleanup(Start2);
 }
 
 void UserInteract::init(){
@@ -200,6 +204,10 @@ void UserInteract::init(){
 	Win = loadImage(WIN);
 	YouWin = loadImage(YOUWIN);
 	YouLose = loadImage(YOULOSE);
+	Final = loadImage(FINAL);
+	Logo = loadImage(LOGO);
+	Start1 = loadImage(START1);
+	Start2 = loadImage(START2);
 	getImageSize(ScoreTitle, ScoreTitleW, ScoreTitleH);
 	getImageSize(CraftSam, CraftSamW, CraftSamH);
 	getImageSize(BombSam, BombSamW, BombSamH);
@@ -209,6 +217,21 @@ void UserInteract::init(){
 	getImageSize(Win, WinW, WinH);
 	getImageSize(YouWin, YouWinW, YouWinH);
 	getImageSize(YouLose, YouLoseW, YouLoseH);
+	getImageSize(Final, FinalW, FinalH);
+	getImageSize(Logo, LogoW, LogoH);
+	getImageSize(Start1, Start1W, Start1H);
+	getImageSize(Start2, Start2W, Start2H);
+}
+
+void UserInteract::drawWelcome(){
+	drawImage(Logo, SCREEN_WIDTH / 2 - LogoW / 2, SCREEN_HEIGHT / 3.5 - LogoH / 2);
+	drawImage(CraftSam, SCREEN_WIDTH / 2 - CraftSamW / 2, SCREEN_HEIGHT / 3.5 - CraftSamH / 2);
+	if(!f){
+		drawImage(Start1, SCREEN_WIDTH / 2 - Start1W / 2, SCREEN_HEIGHT / 2 - Start1H / 2);
+	}
+	else{
+		drawImage(Start2, SCREEN_WIDTH / 2 - Start2W / 2, SCREEN_HEIGHT / 2 - Start2H / 2);
+	}
 }
 
 void UserInteract::drawHint(){
@@ -244,15 +267,45 @@ void UserInteract::drawHint(){
 }
 
 void UserInteract::drawEnd(const int res){
+	Rect clip;
+	int p = 1;
 	setPenColor(255,255,255,220);
 	drawRect(Rect{0,0,1027,768}, 1);
 	if(res == GameState::WIN){
+		if(scro  < SR -> PC -> score + SR -> PC -> life * 100 + SR -> PC -> bomb * 100){
+			scro += 100;
+			if(scro > SR -> PC -> score + SR -> PC -> life * 100 + SR -> PC -> bomb * 100){
+				scro = SR -> PC -> score + SR -> PC -> life * 100 + SR -> PC -> bomb * 100;
+			}
+		}
 		drawImage(Win, SCREEN_WIDTH / 2 - WinW / 2, SCREEN_HEIGHT / 4 - WinH / 2);
 		drawImage(YouWin, SCREEN_WIDTH / 2 - YouWinW / 2, SCREEN_HEIGHT / 2  - YouWinH / 2);
+		drawImage(Final, SCREEN_WIDTH / 4  - FinalW / 2, SCREEN_HEIGHT / 1.4 - FinalH / 2);
+		for(int i = 1; i <= 6; ++i){
+		clip = Rect{(scro % (10 * p)) / p * NumberPicW / 10,0, NumberPicW / 10, NumberPicH };
+		drawImage(NumberPic, SCREEN_WIDTH / 1.7 + 6 * NumberPicW / 10 - (i + 1) * NumberPicW / 10 , SCREEN_HEIGHT / 1.39 - NumberPicH / 2, 1, 1, 0, NULL, FLIP_NONE, &clip);
+		p *= 10;
+	}
 	}
 	else{
 		drawImage(Lose, SCREEN_WIDTH /2 - LoseW / 2, SCREEN_HEIGHT / 4 -LoseH / 2);
-		drawImage(YouLose, SCREEN_WIDTH /2 - YouLoseW / 2, SCREEN_HEIGHT / 2 - YouLoseH / 2);
+		drawImage(YouLose, SCREEN_WIDTH / 2 - YouLoseW / 2, SCREEN_HEIGHT / 2 - YouLoseH / 2);
+	}
+}
+
+void UserInteract::checkAndDeal(){
+	if(SR -> state == GameState::INIT){
+		//std::cout << "CKD" << std::endl;
+		if(SR -> mX >= (SCREEN_WIDTH / 2 - Start1W / 2) && SR -> mX <= (SCREEN_WIDTH / 2 + Start1W / 2) && SR -> mY >= (SCREEN_HEIGHT / 2 - Start1H / 2) && SR -> mY <= (SCREEN_HEIGHT / 2 + Start1H / 2) ){
+			std::cerr << SR -> mX <<","<<SR -> mY << std::endl;
+			f = 1;
+			if(SR -> MC == 1){
+				SR -> state = GameState::RUN;
+			}
+		}
+		else{
+			f = 0;
+		}
 	}
 }
 
@@ -682,7 +735,7 @@ void Enemy::checkAndDeal(){
 				}
 				else if(enemies[i].status == EnemyState::BOSS){
 					SR -> state = GameState::WIN;
-					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
+					/*SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
 					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
 					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_ENER);
 					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_LIFE);
@@ -690,7 +743,7 @@ void Enemy::checkAndDeal(){
 					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_LIFE);
 					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
 					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
-					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);
+					SR -> PRP -> allocateNewProp(enemies[i], PropState::ADD_BOMB);*/
 					SR -> PC -> addScore(500);
 				}
 				enemies[i].reset();

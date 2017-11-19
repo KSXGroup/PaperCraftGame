@@ -27,7 +27,7 @@ void mousePress(){
 
 void mouseMove(){
 	ctrl -> mX = mouseX;
-	ctrl -> mX = mouseY;
+	ctrl -> mY = mouseY;
 }
 
 void mouseRelease(){

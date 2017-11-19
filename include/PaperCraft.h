@@ -24,6 +24,10 @@ const std::string LOSE = "lose.png";
 const std::string WIN = "win.png";
 const std::string YOUWIN = "youwin.png";
 const std::string YOULOSE = "youlose.png";
+const std::string FINAL = "final.png";
+const std::string LOGO = "logo.png";
+const std::string START1 = "start1.png";
+const std::string START2 = "start.png";
 const int SCR_W = Game::SCREEN_WIDTH - 350;
 const int SCR_H = Game::SCREEN_HEIGHT;
 
@@ -130,7 +134,7 @@ class SignalRouter{
 		double mX = 0;
 		double mY = 0;
 		bool MC = false;
-		int state = GameState::RUN;
+		int state = GameState::INIT;
 	private:
 		int max = 10;
 		PlayerCraft *PC = nullptr;
@@ -148,8 +152,11 @@ class UserInteract{
 		void drawHint(); 
 		void drawWelcome(); //TODO
 		void drawEnd(int res); 
+		void checkAndDeal();
 	private:
 		SignalRouter *SR;
+		int scro = 0;
+		bool f = 0;
 		Image *ScoreTitle = nullptr;
 		int ScoreTitleH = 0, ScoreTitleW = 0;
 		Image *BombSam = nullptr;
@@ -168,6 +175,14 @@ class UserInteract{
 		int YouWinW = 0, YouWinH = 0;
 		Image *YouLose = nullptr;
 		int YouLoseW = 0, YouLoseH = 0;
+		Image *Final = nullptr;
+		int FinalW = 0, FinalH = 0;
+		Image *Logo = nullptr;
+		int LogoW = 0, LogoH = 0;
+		Image *Start1 = nullptr;
+		int Start1W = 0, Start1H = 0;
+		Image *Start2 = nullptr;
+		int Start2W = 0, Start2H = 0;
 };
 
 class BumpBox{
