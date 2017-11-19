@@ -186,6 +186,8 @@ UserInteract::~UserInteract(){
 	cleanup(Multiply);
 	cleanup(Lose);
 	cleanup(Win);
+	cleanup(YouWin);
+	cleanup(YouLose);
 }
 
 void UserInteract::init(){
@@ -196,6 +198,8 @@ void UserInteract::init(){
 	Multiply = loadImage(MULTIPLY);
 	Lose = loadImage(LOSE);
 	Win = loadImage(WIN);
+	YouWin = loadImage(YOUWIN);
+	YouLose = loadImage(YOULOSE);
 	getImageSize(ScoreTitle, ScoreTitleW, ScoreTitleH);
 	getImageSize(CraftSam, CraftSamW, CraftSamH);
 	getImageSize(BombSam, BombSamW, BombSamH);
@@ -203,6 +207,8 @@ void UserInteract::init(){
 	getImageSize(Multiply, MultiplyW, MultiplyH);
 	getImageSize(Lose, LoseW, LoseH);
 	getImageSize(Win, WinW, WinH);
+	getImageSize(YouWin, YouWinW, YouWinH);
+	getImageSize(YouLose, YouLoseW, YouLoseH);
 }
 
 void UserInteract::drawHint(){
@@ -238,11 +244,15 @@ void UserInteract::drawHint(){
 }
 
 void UserInteract::drawEnd(const int res){
+	setPenColor(255,255,255,220);
+	drawRect(Rect{0,0,1027,768}, 1);
 	if(res == GameState::WIN){
-		drawImage(Win, SCR_W - WinW / 2, SCR_H / 2 -WinH / 2);
+		drawImage(Win, SCREEN_WIDTH / 2 - WinW / 2, SCREEN_HEIGHT / 4 - WinH / 2);
+		drawImage(YouWin, SCREEN_WIDTH / 2 - YouWinW / 2, SCREEN_HEIGHT / 2  - YouWinH / 2);
 	}
 	else{
-		drawImage(Lose, SCR_W - LoseW / 2, SCR_H / 2 -LoseH / 2);
+		drawImage(Lose, SCREEN_WIDTH /2 - LoseW / 2, SCREEN_HEIGHT / 4 -LoseH / 2);
+		drawImage(YouLose, SCREEN_WIDTH /2 - YouLoseW / 2, SCREEN_HEIGHT / 2 - YouLoseH / 2);
 	}
 }
 

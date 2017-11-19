@@ -22,6 +22,8 @@ const std::string NUMBERS = "numbers.png";
 const std::string MULTIPLY = "multiply.png";
 const std::string LOSE = "lose.png";
 const std::string WIN = "win.png";
+const std::string YOUWIN = "youwin.png";
+const std::string YOULOSE = "youlose.png";
 const int SCR_W = Game::SCREEN_WIDTH - 350;
 const int SCR_H = Game::SCREEN_HEIGHT;
 
@@ -162,6 +164,10 @@ class UserInteract{
 		int LoseH = 0, LoseW = 0;
 		Image *Win = nullptr;
 		int WinH = 0, WinW = 0;
+		Image *YouWin = nullptr;
+		int YouWinW = 0, YouWinH = 0;
+		Image *YouLose = nullptr;
+		int YouLoseW = 0, YouLoseH = 0;
 };
 
 class BumpBox{
@@ -263,7 +269,7 @@ class PlayerCraft : public PaperObj{
 		int ProtectedTime = 240;
 		int ProtectedCount = 0;
 		int PicAlpha = 255;
-		int life = 2;
+		int life = 10;
 		int energy = 100;
 		int bomb = 2;
 		int score = 0;
