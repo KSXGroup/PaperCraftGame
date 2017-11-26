@@ -410,6 +410,10 @@ inline void PaperObj::speedSet(const double s){
 	speed = s;
 }
 
+inline PointD PaperObj::getPos() const {
+	return pos;
+}
+
 void PaperObj::move(){
 	double vlen = velocity.length();
 	velocity = velocity / vlen * speed;
@@ -469,7 +473,6 @@ void PlayerCraft::move(){
 		ifMove = true;
 	}
 
-	//Limit player's speed
 	double len = velocity.length();
 	if( len > speed ){
 		velocity = velocity / len *speed;
@@ -477,7 +480,6 @@ void PlayerCraft::move(){
 	if(!ifMove){
 		velocity = PointD();
 	}
-	//Calculate new position
 	pos = pos + velocity;
 	BPB -> move(velocity, speed);
 }
@@ -500,9 +502,6 @@ void PlayerCraft::drawPlayer(){
 	}
 }
 
-//void PlayerCraft::drawAttachments(){
-	//TODO
-//}
 
 void PlayerCraft::checkAndDeal(){
 	if(ProtectedTime > 0){
@@ -547,7 +546,7 @@ void EnemyCraft::init(const PointD &p, const double _speed, const int type){
 		BPB -> init(ObjId::BOSS, p, speed);
 	}
 }
-void EnemyCraft::shoot(const int strategy, const SignalRouter *SR, const PointD &centre, const PointD &drct = PointD()){
+void EnemyCraft::shoot(const int strategy, const SignalRouter *SR, const PointD &centre, const PointD &drct = PointD(1,1)){
 	if(strategy == BulletState::HALFROUNDSHOOT){
 		if(last_shoot < 150){
 			last_shoot++;
@@ -601,6 +600,7 @@ void EnemyCraft::shoot(const int strategy, const SignalRouter *SR, const PointD 
 		}
 		else{
 			SR -> BLT -> allocateNewBullet(centre,drct - centre, speed + BulletState::NORMALSPEED, ObjId::ENEMY);
+			last_shoot = 0;
 		}
 	}
 }
@@ -655,6 +655,9 @@ void Enemy::allocateNewEnemy(){
 				enemies[i].init(PointD(rand() % (SCR_W - 40) + 20, 20), rand() % EnemyState::NORMALSPEED + 2, EnemyState::NORMAL);
 				enemies[i].state = EnemyState::LIVE;
 				count++;
+				if(enemies[i].speed > 3){
+					enemies[i].shoot_type = rand() % 2;
+				}
 			}
 			if(count == to_allocate){
 				break;
@@ -790,10 +793,16 @@ void Enemy::shootAll(){
 			count++;
 			if(enemies[i].status == EnemyState::NORMAL){
 				if(enemies[i].speed <= 3){
-					enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR, enemies[i].pos);
-				}
-				else{
-					enemies[i].shoot(BulletState::STRAIGHTSHOOT, SR, enemies[i].pos);
+					
+						enemies[i].shoot(BulletState::HALFROUNDSHOOT, SR, enemies[i].pos);
+					}
+				else if(enemies[i].speed > 3){
+					if(enemies[i].shoot_type){
+						enemies[i].shoot(BulletState::STRAIGHTSHOOT, SR, enemies[i].getPos());
+					}
+					else{
+						enemies[i].shoot(BulletState::TRACESHOOT,SR, enemies[i].pos, SR -> PC -> getPos());
+					}
 				}
 			}
 			else if(enemies[i].status == EnemyState::BIG){

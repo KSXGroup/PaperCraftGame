@@ -225,6 +225,7 @@ class PaperObj{
 		inline void velocitySet(const PointD &v);
 		inline void posChange(const PointD &p);
 		inline void speedSet(const double s);
+		inline PointD getPos() const;
 		virtual void move();
 		BumpBox *BPB = nullptr;
 		double speed;
@@ -307,6 +308,7 @@ class EnemyCraft : public PaperObj{
 		int status = EnemyState::NORMAL;
 	private:
 		int last_shoot = 0;
+		int shoot_type = 0;
 		int PicAlpha = 255;
 		int life = 1;
 
